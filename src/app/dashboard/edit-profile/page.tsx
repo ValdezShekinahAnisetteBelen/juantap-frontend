@@ -146,7 +146,7 @@ if (!profile) {
                   <Label htmlFor="username">Username</Label>
                   <div className="flex">
                     <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                      juantap.com/
+                      juantap.info/
                     </span>
                     <Input
                       id="username"
