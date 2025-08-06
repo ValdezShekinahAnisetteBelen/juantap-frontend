@@ -57,8 +57,8 @@ export function Footer() {
             <div key={section.title}>
               <h4 className="font-semibold mb-4">{section.title}</h4>
               <ul className="space-y-2 text-gray-400">
-                {section.links.map((link) => (
-                  <li key={link.href}>
+                {section.links.map((link, item) => (
+                  <li key={link.label}>
                     <Link href={link.href} className="hover:text-white transition-colors">
                       {link.label}
                     </Link>
