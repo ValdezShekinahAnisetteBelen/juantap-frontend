@@ -1,8 +1,10 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { login } from "@/lib/api/auth"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -32,17 +34,17 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
+  const router = useRouter()
+
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
 
-    // Email validation
     if (!formData.email) {
       newErrors.email = "Email is required"
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Please enter a valid email address"
     }
 
-    // Password validation
     if (!formData.password) {
       newErrors.password = "Password is required"
     } else if (formData.password.length < 6) {
@@ -62,16 +64,19 @@ export function LoginForm() {
     setErrors({})
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const response = await login(formData)
 
-      // Here you would handle the actual login logic
-      console.log("Login attempt:", formData)
+      if (response.data.access_token) {
+        localStorage.setItem("token", response.data.access_token)
+      }
 
-      // For demo purposes, show success
-      alert("Login successful! (This is just a demo)")
-    } catch (error) {
-      setErrors({ general: "Invalid email or password. Please try again." })
+      router.push("/dashboard") // ✅ change to your desired redirect
+    } catch (error: any) {
+      if (error.response?.status === 422) {
+        setErrors({ general: error.response.data.message || "Invalid credentials." })
+      } else {
+        setErrors({ general: "Something went wrong. Please try again." })
+      }
     } finally {
       setIsLoading(false)
     }
@@ -79,7 +84,6 @@ export function LoginForm() {
 
   const handleInputChange = (field: keyof LoginFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }))
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
