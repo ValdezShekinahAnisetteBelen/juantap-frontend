@@ -1,30 +1,30 @@
-import { TemplateGallery } from "@/components/templates/template-gallery"
-import { TemplateHeader } from "@/components/templates/template-header"
 import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
 import { HeroSection } from "@/components/sections/hero-section"
 import { FeaturesSection } from "@/components/sections/features-section"
 import { HowItWorksSection } from "@/components/sections/how-it-works-section"
 import { TemplatesSection } from "@/components/sections/templates-section"
 import { CTASection } from "@/components/sections/cta-section"
+import { Footer } from "@/components/layout/footer"
 
-export const metadata = {
-  title: "Premium Templates - JuanTap",
-  description: "Choose from our collection of beautiful premium templates for your digital profile",
-}
+export default function HomePage() {
+  // Set to true to show authenticated header with profile dropdown
+  const isAuthenticated = true
+  const user = {
+    name: "John Doe",
+    email: "john@example.com",
+    avatar: "/placeholder.svg?height=40&width=40",
+    initials: "JD"
+  }
 
-export default function TemplatesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <Header />
       <main>
-         <HeroSection />
+        <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />
         <TemplatesSection />
         <CTASection />
-         <TemplateHeader />
-        <TemplateGallery />
       </main>
       <Footer />
     </div>

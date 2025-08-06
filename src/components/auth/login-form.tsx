@@ -70,7 +70,7 @@ export function LoginForm() {
         localStorage.setItem("token", response.data.access_token)
       }
 
-      router.push("/dashboard") // ✅ change to your desired redirect
+      router.push("/") 
     } catch (error: any) {
       if (error.response?.status === 422) {
         setErrors({ general: error.response.data.message || "Invalid credentials." })

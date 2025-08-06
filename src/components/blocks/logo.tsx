@@ -17,10 +17,10 @@ export function Logo({ variant = "light", className }: LogoProps) {
           variant === "light"
             ? "bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
             : "text-white",
-        )}
-      >
+        )}>
         JuanTap
       </span>
+
     </div>
   )
 }

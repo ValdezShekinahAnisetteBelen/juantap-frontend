@@ -7,7 +7,7 @@ const pricingPlans = [
     price: "Free",
     priceColor: "text-green-600",
     features: [
-      "5+ Beautiful Templates",
+      "2+ Beautiful Templates",
       "Basic Customization",
       "QR Code Generation",
       "Social Media Links",
