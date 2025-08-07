@@ -3,13 +3,14 @@
 import React, { useState } from "react"
 import Link from "next/link"
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { register } from "@/lib/api/auth" // ✅ use function directly
+import { TermsModal } from "./TermsModal" 
+import { register } from "@/lib/api/auth"
+import { toast } from "sonner"
 
 interface RegisterFormData {
   firstName: string
@@ -80,38 +81,49 @@ export function RegisterForm() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  e.preventDefault()
 
-    if (!validateForm()) return
+  if (!validateForm()) return
 
-    setIsLoading(true)
-    setErrors({})
+  setIsLoading(true)
+  setErrors({})
 
-    try {
-      const payload = {
-        name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
-        email: formData.email.trim(),
-        password: formData.password,
-        confirmPassword: formData.confirmPassword,
-      }
-
-      await register(payload)
-      alert("Registration successful!")
-    } catch (error: any) {
-      if (error.response?.status === 422) {
-        const backendErrors = error.response.data.errors
-        setErrors((prev) => ({
-          ...prev,
-          email: backendErrors.email?.[0],
-          password: backendErrors.password?.[0],
-        }))
-      } else {
-        setErrors({ general: "Registration failed. Please try again." })
-      }
-    } finally {
-      setIsLoading(false)
+  try {
+    const payload = {
+      name: `${formData.firstName.trim()} ${formData.lastName.trim()}`,
+      firstname: formData.firstName,
+      lastname: formData.lastName,
+      email: formData.email.trim(),
+      password: formData.password,
+      confirmPassword: formData.confirmPassword,
     }
+
+    await register(payload)
+
+    toast("Registration successful", {
+      description: `Welcome, ${formData.firstName}!`,
+    })
+  } catch (error: any) {
+    if (error.response?.status === 422) {
+      const backendErrors = error.response.data.errors
+      setErrors((prev) => ({
+        ...prev,
+        email: backendErrors.email?.[0],
+        password: backendErrors.password?.[0],
+      }))
+    } else {
+      setErrors({ general: "Registration failed. Please try again." })
+
+      toast("Something went wrong", {
+        description: "Registration failed. Please try again.",
+        className: "bg-red-500 text-white",
+      })
+    }
+  } finally {
+    setIsLoading(false)
   }
+}
+
 
   const handleInputChange = (field: keyof RegisterFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = field === "agreeToTerms" ? e.target.checked : e.target.value
@@ -209,11 +221,8 @@ export function RegisterForm() {
                 }
                 disabled={isLoading}
               />
-              <Label htmlFor="agreeToTerms" className="text-sm text-gray-600 leading-none">
-                I agree to the{" "}
-                <Link href="/terms" className="text-blue-600 hover:text-blue-500">
-                  Terms of Service
-                </Link>{" "}
+             <Label htmlFor="agreeToTerms" className="text-sm text-gray-600 leading-none">
+              I agree to the <TermsModal />
                 and{" "}
                 <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
                   Privacy Policy

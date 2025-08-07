@@ -140,6 +140,55 @@ const mockProfiles: Record<string, ProfileData> = {
     createdAt: "2024-02-20",
     viewCount: 892,
   },
+  shekinahvaldez: {
+  username: "shekinahvaldez",
+  displayName: "Shekinah Valdez",
+  bio: "Creative UI/UX Designer focused on elegant simplicity and user-first experiences. Believer in clean design. ✨",
+  avatar: "/placeholder.svg?height=120&width=120",
+  coverImage: "/placeholder.svg?height=300&width=800",
+  location: "Manila, Philippines",
+  website: "https://shekinahvaldez.com",
+  email: "hello@shekinahvaldez.com",
+  phone: "+63 912 345 6789",
+  socialLinks: [
+    {
+      platform: "Instagram",
+      url: "https://instagram.com/shek.design",
+      username: "@shek.design",
+      icon: "instagram",
+    },
+    {
+      platform: "LinkedIn",
+      url: "https://linkedin.com/in/shekinahvaldez",
+      username: "Shekinah Valdez",
+      icon: "linkedin",
+    },
+    {
+      platform: "Dribbble",
+      url: "https://dribbble.com/shekinah",
+      username: "shekinah",
+      icon: "dribbble",
+    },
+    {
+      platform: "Facebook",
+      url: "https://facebook.com/shekinah.design",
+      username: "Shekinah Valdez",
+      icon: "facebook",
+    },
+  ],
+  template: {
+    id: "minimal-clean",
+    name: "Minimal Clean",
+    backgroundColor: "#ffffff",
+    textColor: "#111827",
+    accentColor: "#8b5cf6",
+    fontFamily: "Inter",
+  },
+  isActive: true,
+  createdAt: "2024-06-10",
+  viewCount: 351,
+},
+
 }
 
 export async function getPublicProfile(username: string): Promise<ProfileData | null> {
