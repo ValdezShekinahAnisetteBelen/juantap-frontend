@@ -87,7 +87,7 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
               size="lg"
             >
               <Download className="w-4 h-4 mr-2" />
-              {isPremium ? "Purchase Template" : "Download Free"}
+              {isPremium ? "Purchase Template" : "Save Free"}
             </Button>
 
             <div className="flex gap-2">
@@ -126,10 +126,6 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
             <div className="flex justify-between">
               <span className="text-gray-600">Downloads</span>
               <span className="font-medium">{template.downloads.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Created</span>
-              <span className="font-medium">{new Date(template.createdAt).toLocaleDateString()}</span>
             </div>
           </CardContent>
         </Card>

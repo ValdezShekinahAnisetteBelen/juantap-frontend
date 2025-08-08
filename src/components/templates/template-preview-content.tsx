@@ -12,9 +12,7 @@ export function TemplatePreviewContent({ template }: TemplatePreviewContentProps
     <div className="space-y-8">
       {/* Template Preview */}
       <Card className="p-0 overflow-hidden">
-        <div className="aspect-[3/4] bg-gray-100">
-          <img src={template.preview || "/placeholder.svg"} alt={template.name} className="w-full h-full object-cover" />
-        </div>
+       
       </Card>
 
       {/* Template Details */}

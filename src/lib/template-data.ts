@@ -1,3 +1,13 @@
+import { MinimalClean } from "@/components/template-previews/minimal-clean"
+import { GradientModern } from "@/components/template-previews/gradient-modern"
+import { ClassicBlue } from "@/components/template-previews/classic-blue"
+import { NeonCyber } from "@/components/template-previews-premium/neon-cyber";
+import { LuxuryGold } from "@/components/template-previews-premium/luxury-gold";
+import { NatureOrganic } from "@/components/template-previews-premium/nature-organic";
+import { RetroVintage } from "@/components/template-previews-premium/retro-vintage";
+import { GlassMorphism } from "@/components/template-previews-premium/glass-morphism";
+import { MinimalistPro } from "@/components/template-previews-premium/minimalist-pro";
+
 export interface Template {
   id: string
   name: string
@@ -6,7 +16,7 @@ export interface Template {
   price: number
   originalPrice?: number
   discount?: number
-  preview: string
+   previewComponent: React.ComponentType;
   thumbnail: string
   features: string[]
   colors: {
@@ -28,16 +38,15 @@ export interface Template {
   downloads: number
 }
 
-// Mock template data
 const templates: Template[] = [
-  // Free Templates
+
   {
     id: "minimal-clean",
     name: "Minimal Clean",
     description: "A clean and simple design perfect for professionals who prefer minimalism.",
     category: "free",
     price: 0,
-    preview: "/placeholder.svg?height=600&width=400",
+    previewComponent: MinimalClean,
     thumbnail: "/placeholder.svg?height=300&width=200",
     features: ["Clean Layout", "Social Links", "Contact Info", "QR Code", "Mobile Responsive"],
     colors: {
@@ -62,7 +71,7 @@ const templates: Template[] = [
     description: "Modern gradient design with vibrant colors and smooth transitions.",
     category: "free",
     price: 0,
-    preview: "/placeholder.svg?height=600&width=400",
+    previewComponent: GradientModern,
     thumbnail: "/placeholder.svg?height=300&width=200",
     features: ["Gradient Background", "Modern Layout", "Social Integration", "QR Code", "Animations"],
     colors: {
@@ -87,7 +96,7 @@ const templates: Template[] = [
     description: "Professional blue theme perfect for business professionals and corporate use.",
     category: "free",
     price: 0,
-    preview: "/placeholder.svg?height=600&width=400",
+    previewComponent: ClassicBlue,
     thumbnail: "/placeholder.svg?height=300&width=200",
     features: ["Professional Design", "Blue Theme", "Business Cards", "Contact Forms", "Analytics"],
     colors: {
@@ -114,7 +123,7 @@ const templates: Template[] = [
     description: "Futuristic neon design with cyberpunk aesthetics and glowing effects.",
     category: "premium",
     price: 299,
-    preview: "/placeholder.svg?height=600&width=400",
+    previewComponent: NeonCyber,
     thumbnail: "/placeholder.svg?height=300&width=200",
     features: [
       "Neon Glowing Effects",
@@ -150,7 +159,7 @@ const templates: Template[] = [
     price: 399,
     originalPrice: 499,
     discount: 20,
-    preview: "/placeholder.svg?height=600&width=400",
+    previewComponent: LuxuryGold,
     thumbnail: "/placeholder.svg?height=300&width=200",
     features: [
       "Gold Foil Effects",
@@ -183,7 +192,7 @@ const templates: Template[] = [
     description: "Earth-toned design inspired by nature with organic shapes and textures.",
     category: "premium",
     price: 249,
-    preview: "/placeholder.svg?height=600&width=400",
+    previewComponent: NatureOrganic,
     thumbnail: "/placeholder.svg?height=300&width=200",
     features: [
       "Organic Shapes",
@@ -215,7 +224,7 @@ const templates: Template[] = [
     description: "Nostalgic 80s-inspired design with retro colors and vintage typography.",
     category: "premium",
     price: 279,
-    preview: "/placeholder.svg?height=600&width=400",
+    previewComponent: RetroVintage,
     thumbnail: "/placeholder.svg?height=300&width=200",
     features: [
       "80s Aesthetics",
@@ -248,7 +257,7 @@ const templates: Template[] = [
     description: "Modern glassmorphism design with frosted glass effects and blur backgrounds.",
     category: "premium",
     price: 329,
-    preview: "/placeholder.svg?height=600&width=400",
+    previewComponent: GlassMorphism,
     thumbnail: "/placeholder.svg?height=300&width=200",
     features: [
       "Glassmorphism Effects",
@@ -281,7 +290,7 @@ const templates: Template[] = [
     description: "Ultra-clean minimalist design with perfect typography and spacing.",
     category: "premium",
     price: 199,
-    preview: "/placeholder.svg?height=600&width=400",
+    previewComponent: MinimalistPro,
     thumbnail: "/placeholder.svg?height=300&width=200",
     features: [
       "Ultra-clean Design",
@@ -308,6 +317,7 @@ const templates: Template[] = [
     downloads: 445,
   },
 ]
+
 
 export async function getAllTemplates(): Promise<Template[]> {
   // Simulate API delay

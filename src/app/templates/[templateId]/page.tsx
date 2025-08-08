@@ -1,36 +1,46 @@
-import { TemplatePreview } from "@/components/templates/template-preview"
-import { getTemplateById } from "@/lib/template-data"
-import { notFound } from "next/navigation"
+import { getTemplateById } from "@/lib/template-data";
+import { notFound } from "next/navigation";
+import { TemplatePreviewContent } from "@/components/templates/template-preview-content";
+import { TemplatePreviewHeader } from "@/components/templates/template-preview-header";
+import { TemplatePreviewSidebar } from "@/components/templates/template-preview-sidebar";
 
 interface TemplatePageProps {
   params: {
-    templateId: string
-  }
+    templateId: string;
+  };
 }
 
 export default async function TemplatePage({ params }: TemplatePageProps) {
-  const { templateId } = await params
-  const template = await getTemplateById(templateId)
+  const template = await getTemplateById(params.templateId);
 
   if (!template) {
-    notFound()
+    notFound();
   }
 
-  return <TemplatePreview template={template} />
-}
+  const { previewComponent: PreviewComponent, ...templateData } = template;
 
-export async function generateMetadata({ params }: TemplatePageProps) {
-  const { templateId } = await params
-  const template = await getTemplateById(templateId)
+  return (
+    <>
+      {/* Header full width */}
+      <header className="w-full bg-gray-50 px-6 py-4 shadow-sm">
+        <TemplatePreviewHeader template={templateData} />
+      </header>
 
-  if (!template) {
-    return {
-      title: "Template Not Found - JuanTap",
-    }
-  }
+      {/* Main content with sidebars */}
+      <div className="min-h-screen bg-gray-50 flex gap-6 p-6">
+        <main className="flex-1">
+          <div className="my-6">
+            <PreviewComponent />
+          </div>
+          <div className="container mx-auto px-4 py-8">
+            <TemplatePreviewContent template={templateData} />
+          </div>
+        </main>
 
-  return {
-    title: `${template.name} Template - JuanTap`,
-    description: template.description,
-  }
+        <div className="hidden lg:block w-1/3">
+          <TemplatePreviewSidebar template={templateData} />
+        </div>
+      </div>
+    </>
+  );
 }

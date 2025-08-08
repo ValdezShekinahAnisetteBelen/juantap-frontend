@@ -313,17 +313,23 @@ if (!profile) {
                       placeholder="your@email.com"
                     />
                   </div>
-                  <div>
+                   <div>
                     <Label htmlFor="phone" className="flex items-center gap-2">
                       <Phone className="w-4 h-4" />
                       Phone
                     </Label>
-                   <Input
+                  <Input
                     id="phone"
                     value={profile.phone || ""}
-                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+                      setProfile({ ...profile, phone: digits });
+                    }}
                     placeholder="09156277266"
+                    maxLength={11}
+                    inputMode="numeric"
                   />
+
                   </div>
                 </div>
 

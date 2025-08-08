@@ -63,7 +63,7 @@ export function ProfilePreview() {
 
         <div className="flex justify-center">
          <QRCodeCanvas
-          value={`https://juantap.info/u/${user.id}`}
+          value={`https://juantap.info/${user.username}`}
           size={128} />
         </div>
       </div>

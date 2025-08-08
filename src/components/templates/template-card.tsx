@@ -12,19 +12,23 @@ interface TemplateCardProps {
 export function TemplateCard({ template }: TemplateCardProps) {
   const isPremium = template.category === "premium"
   const hasDiscount = template.originalPrice && template.discount
+  const PreviewComponent = template.previewComponent
 
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden">
       <div className="relative">
         {/* Template Preview */}
         <div className="aspect-[3/4] bg-gray-100 overflow-hidden">
-          <img
-            src={template.thumbnail || "/placeholder.svg"}
-            alt={template.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-
-        </div>
+    {PreviewComponent ? (
+      <PreviewComponent />
+    ) : (
+      <img
+        src={template.thumbnail || "/placeholder.svg"}
+        alt={template.name}
+        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+      />
+    )}
+  </div>
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
