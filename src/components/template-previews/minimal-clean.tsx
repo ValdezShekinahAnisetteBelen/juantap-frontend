@@ -1,132 +1,305 @@
-import React from "react";
-import { User } from "lucide-react";
+"use client";
 
-interface MinimalCleanProps {
-  profile?: {
-    displayName?: string;
-    location?: string;
-    bio?: string;
-    coverImage?: string;
-    avatar?: string;
-    website?: string;
-    phone?: string;
-    socialLinks?: { id: string; username: string; url: string; isVisible: boolean }[];
-    template?: {
-      backgroundColor?: string;
-      textColor?: string;
-      fontFamily?: string;
-    };
-  };
+import React, { useEffect, useState } from "react";
+import {
+  User, Mail, Phone, MapPin, Globe, Copy,
+  Instagram, Twitter, Linkedin, Github, Youtube, Music,
+  Facebook, QrCode, Share2, Heart, Download
+} from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { QRCodeSVG } from "qrcode.react";
+
+interface SocialLink {
+  id: string;
+  username: string;
+  url: string;
+  isVisible: boolean;
+}
+
+interface ProfileData {
+  displayName?: string;
+  location?: string;
+  bio?: string;
+  coverImage?: string;
+  avatar?: string;
+  website?: string;
+  phone?: string;
+  email?: string;
+  socialLinks?: SocialLink[];
   template?: {
-    name?: string;
-    thumbnail?: string;
-    previewComponent?: React.ComponentType;
+    backgroundColor?: string;
+    textColor?: string;
+    fontFamily?: string;
+    gradientFrom?: string;
+    gradientTo?: string;
   };
 }
 
-export function MinimalClean({ profile, template }: MinimalCleanProps) {
-  const bg = profile?.template?.backgroundColor || "#f9fafb";
-  const text = profile?.template?.textColor || "#111827";
-  const font = profile?.template?.fontFamily || "Inter, sans-serif";
+export function MinimalClean() {
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [liked, setLiked] = useState(false);
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+  const imageUrl = process.env.NEXT_PUBLIC_IMAGE_URL || "";
+  const profileUrl = profile?.displayName ? `${imageUrl}/${profile.displayName}` : "";
+
+  // Social icons map
+  const socialIconMap: Record<string, React.ReactNode> = {
+    facebook: <Facebook size={16} />,
+    instagram: <Instagram size={16} />,
+    twitter: <Twitter size={16} />,
+    linkedin: <Linkedin size={16} />,
+    github: <Github size={16} />,
+    youtube: <Youtube size={16} />,
+    tiktok: <Music size={16} />,
+  };
+
+  // Fetch profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user-profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+
+        if (!res.ok) throw new Error("Failed to fetch profile");
+
+        const data = await res.json();
+        setProfile({
+          displayName: data.display_name,
+          location: data.profile.location,
+          bio: data.profile.bio,
+          coverImage: data.profile.background_type === "image"
+            ? `${baseUrl}${data.profile.background_value}`
+            : undefined,
+          avatar: data.profile_image
+            
+          || undefined,
+          website: data.profile.website,
+          phone: data.profile.phone,
+          email: data.email,
+          socialLinks: data.profile.socialLinks || [],
+          template: {
+            backgroundColor: data.profile.background_type === "color"
+              ? data.profile.background_value
+              : "#f9fafb",
+            textColor: "#111827",
+            fontFamily: data.profile.font_style || "Inter, sans-serif",
+            gradientFrom: data.profile.gradientFrom,
+            gradientTo: data.profile.gradientTo,
+          },
+        });
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [baseUrl]);
+const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Check this out!",
+          text: "Here’s something interesting for you.",
+          url: window.location.href, // current page URL
+        });
+        console.log("Content shared successfully!");
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      alert("Sharing is not supported on this browser.");
+    }
+  };
+  const copyUrl = () => {
+    if (!profileUrl) return;
+    navigator.clipboard.writeText(profileUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (loading) return <p className="p-6 text-gray-500">Loading...</p>;
+  if (error) return <p className="p-6 text-red-500">Error: {error}</p>;
+  if (!profile) return <p className="p-6 text-gray-500">No profile found.</p>;
+
+  const { backgroundColor, textColor, fontFamily, gradientFrom, gradientTo } = profile.template || {};
 
   return (
-    <div  
-      className="w-full h-full p-4 flex justify-center items-center"
+    <div
+      className="w-full flex justify-center p-6"
       style={{
-        background: bg,
-        color: text,
-        fontFamily: font,
+        background: backgroundColor,
+        color: textColor,
+        fontFamily,
       }}
     >
-      {/* Card Container */}
-      <div className="w-full max-w-xs bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-100 transition hover:shadow-xl hover:-translate-y-1 duration-300">
-        
-        {/* Cover Image */}
-        <div className="h-28 w-full bg-gray-100">
-          {profile?.coverImage ? (
-            <img
-              src={profile.coverImage}
-              alt="Cover"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
-              No Cover
-            </div>
+      <div className="w-full max-w-lg bg-white shadow-lg rounded-2xl overflow-hidden flex flex-col">
+        {/* Cover */}
+        <div
+          className="w-full"
+          style={{
+            background: !profile.coverImage
+              ? `linear-gradient(135deg, ${gradientFrom || "#667eea"}, ${gradientTo || "#764ba2"})`
+              : undefined,
+          }}
+        >
+          {profile.coverImage && (
+            <img src={profile.coverImage} alt="Cover" className="w-full object-cover" />
           )}
         </div>
 
-        {/* Avatar */}
-       <div className="flex flex-col items-center px-6 -mt-12 relative">
-          <div className="w-24 h-24 rounded-full border-4 border-white shadow-md overflow-hidden bg-gray-50 flex items-center justify-center">
-            {profile?.avatar ? (
-              <img
-                src={profile.avatar}
-                alt={profile.displayName || "Profile Avatar"}
-                className="w-full h-full object-cover"
-              />
+        {/* Avatar & Bio */}
+        <div className="relative flex flex-col items-center mt-6 px-6">
+          <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg overflow-hidden bg-gray-200 flex items-center justify-center">
+            {profile.avatar ? (
+              <img src={`${imageUrl}/storage/${profile.avatar}`} alt={profile.displayName || "Avatar"} className="w-full h-full object-cover" />
             ) : (
-              <User className="w-10 h-10 text-gray-400" />
+              <User size={32} className="text-gray-500" />
             )}
           </div>
-
-          {/* Name & Bio */}
-          <h1 className="mt-4 text-lg font-semibold">
-            {profile?.displayName || "Name"}
-          </h1>
-          {profile?.location && (
-            <p className="text-xs text-gray-500">{profile.location}</p>
-          )}
-          {profile?.bio && (
-            <p className="mt-1 text-xs text-gray-500 text-center leading-snug">
-              {profile.bio}
-            </p>
-          )}
+          <span className="absolute top-20 right-[40%] bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+            Active
+          </span>
+          <h1 className="mt-4 text-xl font-bold">{profile.displayName}</h1>
+          {profile.bio && <p className="text-sm text-gray-600 text-center mt-1">{profile.bio}</p>}
+          <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-2 justify-center">
+            {profile.location && (
+              <span className="flex items-center gap-1">
+                <MapPin size={12} /> {profile.location}
+              </span>
+            )}
+            {profile.website && (
+              <a href={profile.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-blue-500">
+                <Globe size={12} /> {profile.website}
+              </a>
+            )}
+          </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-gray-100 mt-4"></div>
-
-        {/* Contact Info */}
-        <div className="px-6 py-3 text-xs text-gray-600 space-y-1">
-          {profile?.website && (
-            <p className="truncate">
-              🌐{" "}
-              <a
-                href={profile.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-blue-600"
-              >
-                {profile.website}
-              </a>
-            </p>
+        {/* Contact */}
+        <div className="p-6 space-y-4">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase">Contact</h2>
+          {profile.email && (
+            <div className="flex justify-between items-center bg-gray-50 rounded-lg p-3 text-sm">
+              <div className="flex items-center gap-2">
+                <Mail size={16} /> {profile.email}
+              </div>
+              <button className="text-gray-400 hover:text-gray-600" onClick={() => navigator.clipboard.writeText(profile.email)}>
+                <Copy size={16} />
+              </button>
+            </div>
           )}
-          {profile?.phone && <p>📞 {profile.phone}</p>}
+          {profile.phone && (
+            <div className="flex justify-between items-center bg-gray-50 rounded-lg p-3 text-sm">
+              <div className="flex items-center gap-2">
+                <Phone size={16} /> {profile.phone}
+              </div>
+              <button className="text-gray-400 hover:text-gray-600" onClick={() => navigator.clipboard.writeText(profile.phone)}>
+                <Copy size={16} />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Social Links */}
-        {profile?.socialLinks?.length > 0 && (
-          <>
-            <div className="border-t border-gray-100"></div>
-            <div className="flex flex-wrap justify-center gap-2 p-4">
+        {profile.socialLinks?.length ? (
+          <div className="px-6 pb-6">
+            <h2 className="text-sm font-semibold text-gray-500 uppercase mb-3">Connect with me</h2>
+            <div className="grid grid-cols-2 gap-3">
               {profile.socialLinks
-                .filter((link) => link.isVisible)
-                .map((link) => (
-                  <a
-                    key={link.id}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1 text-xs rounded-full bg-gray-100 hover:bg-gray-200 transition"
-                  >
-                    {link.username}
-                  </a>
-                ))}
+                .filter(link => link.isVisible)
+                .map(link => {
+                  const icon = socialIconMap[link.id.toLowerCase()] || <Globe size={16} />;
+                  return (
+                    <a
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2 bg-gray-50 rounded-lg p-2 text-sm hover:bg-gray-100 transition"
+                    >
+                      {icon}
+                      {link.username}
+                    </a>
+                  );
+                })}
             </div>
-          </>
-        )}
+          </div>
+        ) : null}
+
+        {/* Bottom Actions */}
+        <div className="flex justify-around border-t bg-gray-50 p-4">
+          <button onClick={() => setIsQRModalOpen(true)} className="flex flex-col items-center text-sm">
+            <QrCode className="w-5 h-5 mb-1" /> QR Code
+          </button>
+          <button
+      onClick={handleShare}
+      className="flex flex-col items-center text-sm"
+    >
+      <Share2 className="w-5 h-5 mb-1" /> Share
+    </button>
+          <button
+            className={`flex flex-col items-center text-sm ${liked ? "text-red-500" : ""}`}
+            onClick={() => setLiked(!liked)}
+          >
+            <Heart className={`w-5 h-5 mb-1 ${liked ? "fill-red-500" : ""}`} /> Like
+          </button>
+          <button className="flex flex-col items-center text-sm">
+            <Download className="w-5 h-5 mb-1" /> Save
+          </button>
+        </div>
       </div>
+
+      {/* QR Modal */}
+      <Dialog open={isQRModalOpen} onOpenChange={setIsQRModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <QrCode className="w-5 h-5" /> QR Code for {profile.displayName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-4">
+            <QRCodeSVG
+              value={profileUrl}
+              size={256}
+              level="H"
+              imageSettings={{
+                src: "/logo.png", // replace with dynamic logo if needed
+                height: 40,
+                width: 40,
+                excavate: true,
+              }}
+            />
+            <div className="w-full p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">Profile URL:</p>
+              <div className="flex items-center justify-between">
+                <code className="text-sm text-gray-800 truncate flex-1 mr-2">{profileUrl}</code>
+                <Button variant="ghost" size="sm" onClick={copyUrl}>
+                  {copied ? "Copied!" : "Copy"}
+                </Button>
+              </div>
+            </div>
+            <div className="flex gap-2 w-full">
+              <Button variant="outline">
+                <Download className="w-4 h-4 mr-2" /> Download
+              </Button>
+              <Button onClick={() => setIsQRModalOpen(false)}>Close</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
