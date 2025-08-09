@@ -1,28 +1,29 @@
-"use client"
+"use client";
 
-import type { Template } from "@/lib/template-data"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Upload, CreditCard, Smartphone, Building, CheckCircle, AlertCircle } from 'lucide-react'
-import { useState } from "react"
+import type { Template } from "@/lib/template-data";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Upload, CreditCard, Smartphone, Building, CheckCircle, AlertCircle } from "lucide-react";
+import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 interface PaymentModalProps {
-  isOpen: boolean
-  onClose: () => void
-  template: Template
+  isOpen: boolean;
+  onClose: () => void;
+  template: Template;
 }
 
 interface PaymentMethod {
-  id: string
-  name: string
-  icon: React.ComponentType<{ className?: string }>
-  details: string
-  accountInfo: string
+  id: string;
+  name: string;
+  icon: React.ComponentType<{ className?: string }>;
+  details: string;
+  accountInfo: string;
 }
 
 const paymentMethods: PaymentMethod[] = [
@@ -54,63 +55,71 @@ const paymentMethods: PaymentMethod[] = [
     details: "Bank to bank transfer",
     accountInfo: "Account: 0987-6543-21 (Juan Tap)",
   },
-]
+];
 
 export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
-  const [selectedMethod, setSelectedMethod] = useState<string>("")
-  const [screenshot, setScreenshot] = useState<File | null>(null)
-  const [referenceNumber, setReferenceNumber] = useState("")
-  const [notes, setNotes] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
+  const pathname = usePathname();
+  const currentSlug = pathname.split("/").pop() || "";
+
+  const [selectedMethod, setSelectedMethod] = useState<string>("");
+  const [screenshot, setScreenshot] = useState<File | null>(null);
+  const [referenceNumber, setReferenceNumber] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setScreenshot(file)
+      setScreenshot(file);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedMethod || !screenshot) return
+    e.preventDefault();
+    if (!selectedMethod || !screenshot) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      const formData = new FormData();
+      formData.append("template_slug", currentSlug);
+      formData.append("payment_method", selectedMethod);
+      formData.append("reference_number", referenceNumber);
+      formData.append("notes", notes);
+      formData.append("receipt_img", screenshot);
 
-      // Here you would upload the screenshot and create the payment request
-      console.log("Payment submission:", {
-        templateId: template.id,
-        paymentMethod: selectedMethod,
-        referenceNumber,
-        notes,
-        screenshot: screenshot.name,
-      })
+      const res = await fetch("/api/payment/submit", {
+        method: "POST",
+        body: formData,
+      });
 
-      setIsSubmitted(true)
+      if (!res.ok) {
+        throw new Error("Failed to submit payment");
+      }
+
+      setIsSubmitted(true);
     } catch (error) {
-      console.error("Payment submission failed:", error)
+      console.error("Payment submission failed:", error);
+      alert("Submission failed. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   const resetModal = () => {
-    setSelectedMethod("")
-    setScreenshot(null)
-    setReferenceNumber("")
-    setNotes("")
-    setIsSubmitted(false)
-    setIsSubmitting(false)
-  }
+    setSelectedMethod("");
+    setScreenshot(null);
+    setReferenceNumber("");
+    setNotes("");
+    setIsSubmitted(false);
+    setIsSubmitting(false);
+  };
 
   const handleClose = () => {
-    resetModal()
-    onClose()
-  }
+    resetModal();
+    onClose();
+  };
 
   if (isSubmitted) {
     return (
@@ -122,8 +131,7 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Payment Submitted!</h3>
             <p className="text-gray-600 mb-6">
-              Your payment proof has been submitted for review. You'll receive an email notification once it's approved
-              (usually within 24 hours).
+              Your payment proof has been submitted for review. You'll receive an email notification once it's approved (usually within 24 hours).
             </p>
             <Button onClick={handleClose} className="w-full">
               Close
@@ -131,7 +139,7 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
           </div>
         </DialogContent>
       </Dialog>
-    )
+    );
   }
 
   return (
@@ -150,7 +158,7 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
                   <img src={template.thumbnail || "/placeholder.svg"} alt={template.name} className="w-16 h-16 rounded-lg object-cover" />
                   <div>
                     <h4 className="font-semibold">{template.name}</h4>
-                    <p className="text-sm text-gray-600">Premium Template</p>
+                    <p className="text-sm text-gray-600">{template.category === "premium" ? "Premium Template" : "Free Template"}</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -313,5 +321,5 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
