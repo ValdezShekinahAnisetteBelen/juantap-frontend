@@ -10,7 +10,7 @@ interface TemplatePageProps {
   };
 }
 
-export default async function ProfileWithUsedTemplate ({ params }: TemplatePageProps) {
+export default async function ProfileWithUsedTemplate({ params }: TemplatePageProps) {
   const template = await getTemplateById(params.templateId);
 
   if (!template) {
