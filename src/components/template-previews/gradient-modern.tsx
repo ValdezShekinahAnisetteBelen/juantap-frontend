@@ -1,132 +1,372 @@
-import React from "react";
-import { User } from "lucide-react";
+"use client";
 
-interface GradientModernProps {
-  profile?: {
-    displayName?: string;
-    location?: string;
-    bio?: string;
-    coverImage?: string;
-    avatar?: string;
-    website?: string;
-    phone?: string;
-    socialLinks?: { id: string; username: string; url: string; isVisible: boolean }[];
-    template?: {
-      backgroundColor?: string;
-      textColor?: string;
-      fontFamily?: string;
-      gradientFrom?: string;
-      gradientTo?: string;
-    };
+import { useParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import {
+  Mail, Phone, MapPin, Globe, Copy,
+  Instagram, Twitter, Linkedin, Github, Youtube, Music,
+  Facebook, QrCode, Share2, Heart, Download, User
+} from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { QRCodeSVG } from "qrcode.react";
+
+interface SocialLink {
+  id: string;
+  username: string;
+  url: string;
+  isVisible: boolean;
+}
+
+interface ProfileData {
+  displayName?: string;
+  location?: string;
+  bio?: string;
+  coverImage?: string;
+  avatar?: string;
+  website?: string;
+  phone?: string;
+  email?: string;
+  socialLinks?: SocialLink[];
+  template?: {
+    backgroundColor?: string;
+    textColor?: string;
+    fontFamily?: string;
+    gradientFrom?: string;
+    gradientTo?: string;
   };
 }
 
-export function GradientModern({ profile }: GradientModernProps) {
-  const gradientFrom = profile?.template?.gradientFrom || "#667eea";
-  const gradientTo = profile?.template?.gradientTo || "#764ba2";
-  const text = profile?.template?.textColor || "#ffffff";
-  const font = profile?.template?.fontFamily || "Inter, sans-serif";
+export function GradientModern() {
+  const { username } = useParams<{ username?: string }>();
+  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [liked, setLiked] = useState(false);
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
+  const imageUrl = process.env.NEXT_PUBLIC_IMAGE_URL || "";
+  const profileUrl = profile?.displayName ? `${imageUrl}/${profile.displayName}` : "";
+
+  const socialIconMap: Record<string, React.ReactNode> = {
+    facebook: <Facebook size={14} />,
+    instagram: <Instagram size={14} />,
+    twitter: <Twitter size={14} />,
+    linkedin: <Linkedin size={14} />,
+    github: <Github size={14} />,
+    youtube: <Youtube size={14} />,
+    tiktok: <Music size={14} />,
+  };
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        let endpoint = "";
+        let headers: HeadersInit = { Accept: "application/json" };
+
+        if (username) {
+          endpoint = `${baseUrl}/profile/${username}`;
+        } else {
+          const token = localStorage.getItem("token");
+          if (!token) throw new Error("No authentication token found");
+          endpoint = `${baseUrl}/user-profile`;
+          headers = { ...headers, Authorization: `Bearer ${token}` };
+        }
+
+        const res = await fetch(endpoint, { headers });
+        if (!res.ok) throw new Error("Failed to fetch profile");
+
+        const data = await res.json();
+        setProfile({
+          displayName: data.display_name,
+          location: data.profile?.location,
+          bio: data.profile?.bio,
+          coverImage:
+            data.profile?.background_type === "image"
+              ? `${baseUrl}${data.profile?.background_value}`
+              : undefined,
+          avatar: data.profile_image || undefined,
+          website: data.profile?.website,
+          phone: data.profile?.phone,
+          email: data.email,
+          socialLinks: data.profile?.socialLinks || [],
+          template: {
+            backgroundColor:
+              data.profile?.background_type === "color"
+                ? data.profile?.background_value
+                : "#667eea",
+            textColor: "#ffffff",
+            fontFamily: data.profile?.font_style || "Inter, sans-serif",
+            gradientFrom: data.profile?.gradientFrom || "#667eea",
+            gradientTo: data.profile?.gradientTo || "#764ba2",
+          },
+        });
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [username, baseUrl]);
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Check this out!",
+          text: "Here's something interesting for you.",
+          url: window.location.href,
+        });
+      } catch (err) {
+        console.error("Error sharing:", err);
+      }
+    } else {
+      alert("Sharing is not supported on this browser.");
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyUrl = () => {
+    if (!profileUrl) return;
+    copyToClipboard(profileUrl);
+  };
+
+  if (loading) return <p className="p-6 text-white">Loading...</p>;
+  if (error) return <p className="p-6 text-red-300">Error: {error}</p>;
+  if (!profile) return <p className="p-6 text-white">No profile found.</p>;
+
+  const gradientFrom = profile.template?.gradientFrom || "#667eea";
+  const gradientTo = profile.template?.gradientTo || "#764ba2";
+  const textColor = profile.template?.textColor || "#ffffff";
+  const fontFamily = profile.template?.fontFamily || "Inter, sans-serif";
 
   return (
     <div
-      className="w-full h-full p-4 flex justify-center items-center"
+      className="w-full  p-4 flex justify-center items-center"
       style={{
         background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
-        color: text,
-        fontFamily: font,
+        color: textColor,
+        fontFamily: fontFamily,
       }}
     >
       {/* Card Container */}
-      <div className="w-full max-w-xs bg-white/10 backdrop-blur-lg shadow-xl rounded-2xl overflow-hidden border border-white/20 transition hover:shadow-2xl hover:-translate-y-1 duration-300">
+      <div className="w-full max-w-sm bg-white/10 backdrop-blur-lg shadow-xl rounded-2xl overflow-hidden border border-white/20 transition hover:shadow-2xl hover:-translate-y-1 duration-300">
         
         {/* Cover Image */}
-        <div className="h-28 w-full bg-gradient-to-r from-pink-400 to-yellow-300">
-          {profile?.coverImage ? (
+        <div className="h-28 w-full">
+          {profile.coverImage ? (
             <img
               src={profile.coverImage}
               alt="Cover"
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-white/70 text-sm">
-              No Cover
-            </div>
+            <div 
+              className="w-full h-full"
+              style={{
+                background: `linear-gradient(to right, ${gradientFrom}, ${gradientTo})`
+              }}
+            />
           )}
         </div>
 
         {/* Avatar */}
         <div className="flex flex-col items-center px-6 -mt-12 relative z-10">
-        <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center">
-            {profile?.avatar ? (
-            <img
-                src={profile.avatar}
+          <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center">
+            {profile.avatar ? (
+              <img
+                src={`${imageUrl}/storage/${profile.avatar}`}
                 alt={profile.displayName || "Profile Avatar"}
                 className="w-full h-full object-cover"
-            />
+              />
             ) : (
-            <User className="w-10 h-10 text-white/70" /> // Lucide user icon
+              <User className="w-10 h-10 text-white/70" />
             )}
-        </div>
+          </div>
 
-        {/* Name & Bio */}
-        <h1 className="mt-4 text-lg font-semibold text-white">
-            {profile?.displayName || "Name"}
-        </h1>
-        {profile?.location && (
-            <p className="text-xs text-white/80">{profile.location}</p>
-        )}
-        {profile?.bio && (
-            <p className="mt-1 text-xs text-white/80 text-center leading-snug">
-            {profile.bio}
-            </p>
-        )}
-        </div>
-
-
-        
-        {/* Divider */}
-        <div className="border-t border-white/20 mt-4"></div>
-
-        {/* Contact Info */}
-        <div className="px-6 py-3 text-xs text-white/80 space-y-1">
-          {profile?.website && (
-            <p className="truncate">
-              🌐{" "}
-              <a
-                href={profile.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-yellow-300"
-              >
-                {profile.website}
-              </a>
+          {/* Name & Bio */}
+          <h1 className="mt-4 text-lg font-semibold text-white">
+            {profile.displayName || "Name"}
+          </h1>
+          {profile.location && (
+            <div className="flex items-center gap-1 mt-1">
+              <MapPin size={12} className="text-white/80" />
+              <p className="text-xs text-white/80">{profile.location}</p>
+            </div>
+          )}
+          {profile.bio && (
+            <p className="mt-2 text-xs text-white/80 text-center leading-snug">
+              {profile.bio}
             </p>
           )}
-          {profile?.phone && <p>📞 {profile.phone}</p>}
+        </div>
+
+        {/* Contact Info */}
+        <div className="px-6 py-3 space-y-2">
+          {profile.website && (
+            <div className="flex items-center justify-between bg-white/10 rounded-lg p-2 backdrop-blur">
+              <div className="flex items-center gap-2 text-xs text-white/90">
+                <Globe size={14} />
+                <a
+                  href={profile.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-yellow-300 transition truncate"
+                >
+                  {profile.website}
+                </a>
+              </div>
+              <button
+                onClick={() => copyToClipboard(profile.website!)}
+                className="text-white/60 hover:text-white/80 transition"
+              >
+                <Copy size={12} />
+              </button>
+            </div>
+          )}
+          {profile.email && (
+            <div className="flex items-center justify-between bg-white/10 rounded-lg p-2 backdrop-blur">
+              <div className="flex items-center gap-2 text-xs text-white/90">
+                <Mail size={14} />
+                <span className="truncate">{profile.email}</span>
+              </div>
+              <button
+                onClick={() => copyToClipboard(profile.email!)}
+                className="text-white/60 hover:text-white/80 transition"
+              >
+                <Copy size={12} />
+              </button>
+            </div>
+          )}
+          {profile.phone && (
+            <div className="flex items-center justify-between bg-white/10 rounded-lg p-2 backdrop-blur">
+              <div className="flex items-center gap-2 text-xs text-white/90">
+                <Phone size={14} />
+                <span>{profile.phone}</span>
+              </div>
+              <button
+                onClick={() => copyToClipboard(profile.phone!)}
+                className="text-white/60 hover:text-white/80 transition"
+              >
+                <Copy size={12} />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Social Links */}
-        {profile?.socialLinks?.length > 0 && (
-          <>
-            <div className="border-t border-white/20"></div>
-            <div className="flex flex-wrap justify-center gap-2 p-4">
-              {profile.socialLinks
-                .filter((link) => link.isVisible)
-                .map((link) => (
-                  <a
-                    key={link.id}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1 text-xs rounded-full bg-white/20 hover:bg-white/30 text-white transition"
-                  >
-                    {link.username}
-                  </a>
-                ))}
+        {profile.socialLinks && profile.socialLinks.length > 0 && (
+          <div className="px-6 pb-4">
+            <div className="border-t border-white/20 pt-4">
+              <h3 className="text-xs font-medium text-white/90 mb-3 uppercase tracking-wide">
+                Connect
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {profile.socialLinks
+                  .filter((link) => link.isVisible)
+                  .map((link) => {
+                    const icon = socialIconMap[link.id.toLowerCase()] || <Globe size={14} />;
+                    return (
+                      <a
+                        key={link.id}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-3 py-1.5 text-xs rounded-full bg-white/20 hover:bg-white/30 text-white transition backdrop-blur"
+                      >
+                        {icon}
+                        {link.username}
+                      </a>
+                    );
+                  })}
+              </div>
             </div>
-          </>
+          </div>
         )}
+
+        {/* Bottom Actions */}
+        <div className="flex justify-around border-t border-white/20 bg-white/5 p-3 backdrop-blur">
+          <button
+            onClick={() => setIsQRModalOpen(true)}
+            className="flex flex-col items-center text-xs text-white/80 hover:text-white transition"
+          >
+            <QrCode className="w-4 h-4 mb-1" />
+            QR Code
+          </button>
+          <button
+            onClick={handleShare}
+            className="flex flex-col items-center text-xs text-white/80 hover:text-white transition"
+          >
+            <Share2 className="w-4 h-4 mb-1" />
+            Share
+          </button>
+          <button
+            className={`flex flex-col items-center text-xs transition ${
+              liked ? "text-red-400" : "text-white/80 hover:text-white"
+            }`}
+            onClick={() => setLiked(!liked)}
+          >
+            <Heart className={`w-4 h-4 mb-1 ${liked ? "fill-red-400" : ""}`} />
+            Like
+          </button>
+          <button className="flex flex-col items-center text-xs text-white/80 hover:text-white transition">
+            <Download className="w-4 h-4 mb-1" />
+            Save
+          </button>
+        </div>
       </div>
+
+      {/* QR Modal */}
+      <Dialog open={isQRModalOpen} onOpenChange={setIsQRModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <QrCode className="w-5 h-5" />
+              QR Code for {profile.displayName}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center space-y-4">
+            <QRCodeSVG
+              value={profileUrl}
+              size={256}
+              level="H"
+              imageSettings={{
+                src: "/logo.png",
+                height: 40,
+                width: 40,
+                excavate: true,
+              }}
+            />
+            <div className="w-full p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600 mb-2">Profile URL:</p>
+              <div className="flex items-center justify-between">
+                <code className="text-sm text-gray-800 truncate flex-1 mr-2">
+                  {profileUrl}
+                </code>
+                <Button variant="ghost" size="sm" onClick={copyUrl}>
+                  {copied ? "Copied!" : "Copy"}
+                </Button>
+              </div>
+            </div>
+            <div className="flex gap-2 w-full">
+              <Button variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Download
+              </Button>
+              <Button onClick={() => setIsQRModalOpen(false)}>Close</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
