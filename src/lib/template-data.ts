@@ -338,3 +338,4 @@ export async function getFreeTemplates(): Promise<Template[]> {
 export async function getPremiumTemplates(): Promise<Template[]> {
   return templates.filter((template) => template.category === "premium")
 }
+export { templates }

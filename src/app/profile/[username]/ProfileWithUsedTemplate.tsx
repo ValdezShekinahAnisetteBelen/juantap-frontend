@@ -1,52 +1,46 @@
-"use client"
+import { getTemplateById } from "@/lib/template-data";
+import { notFound } from "next/navigation";
+import { TemplatePreviewContent } from "@/components/templates/template-preview-content";
+import { TemplatePreviewHeader } from "@/components/templates/template-preview-header";
+import { TemplatePreviewSidebar } from "@/components/templates/template-preview-sidebar";
 
-import { useEffect, useState } from "react"
-
-// Import all template components
-import { MinimalClean } from "@/components/template-previews/minimal-clean"
-import { GradientModern } from "@/components/template-previews/gradient-modern"
-import { ClassicBlue } from "@/components/template-previews/classic-blue"
-import { NeonCyber } from "@/components/template-previews-premium/neon-cyber"
-import { LuxuryGold } from "@/components/template-previews-premium/luxury-gold"
-import { NatureOrganic } from "@/components/template-previews-premium/nature-organic"
-import { RetroVintage } from "@/components/template-previews-premium/retro-vintage"
-import { GlassMorphism } from "@/components/template-previews-premium/glass-morphism"
-import { MinimalistPro } from "@/components/template-previews-premium/minimalist-pro"
-
-const templateComponents: Record<string, React.ComponentType<any>> = {
-  "minimal-clean": MinimalClean,
-  "gradient-modern": GradientModern,
-  "classic-blue": ClassicBlue,
-  "neon-cyber": NeonCyber,
-  "luxury-gold": LuxuryGold,
-  "nature-organic": NatureOrganic,
-  "retro-vintage": RetroVintage,
-  "glass-morphism": GlassMorphism,
-  "minimalist-pro": MinimalistPro,
+interface TemplatePageProps {
+  params: {
+    templateId: string;
+  };
 }
 
-export function ProfileWithUsedTemplate({ profile }: { profile: any }) {
-  const [slug, setSlug] = useState("minimal-clean")
+export default async function ProfileWithUsedTemplate ({ params }: TemplatePageProps) {
+  const template = await getTemplateById(params.templateId);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token")
-    if (!token) return
+  if (!template) {
+    notFound();
+  }
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/templates/used`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: "application/json",
-      },
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          setSlug(data[0]?.slug || "minimal-clean")
-        }
-      })
-      .catch(err => console.error("Error fetching template:", err))
-  }, [])
+  const { previewComponent: PreviewComponent, ...templateData } = template;
 
-  const TemplateComponent = templateComponents[slug] || MinimalClean
-  return <TemplateComponent profile={profile} />
+  return (
+    <>
+      {/* Header full width */}
+      <header className="w-full bg-gray-50 px-6 py-4 shadow-sm">
+        <TemplatePreviewHeader template={templateData} />
+      </header>
+
+      {/* Main content with sidebars */}
+      <div className="min-h-screen bg-gray-50 flex gap-6 p-6">
+        <main className="flex-1">
+          <div className="my-6">
+            <PreviewComponent />
+          </div>
+          <div className="container mx-auto px-4 py-8">
+            <TemplatePreviewContent template={templateData} />
+          </div>
+        </main>
+
+        <div className="hidden lg:block w-1/3">
+          <TemplatePreviewSidebar template={templateData} />
+        </div>
+      </div>
+    </>
+  );
 }

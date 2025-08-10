@@ -1,10 +1,11 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import {
-  User, Mail, Phone, MapPin, Globe, Copy,
+  Mail, Phone, MapPin, Globe, Copy,
   Instagram, Twitter, Linkedin, Github, Youtube, Music,
-  Facebook, QrCode, Share2, Heart, Download
+  Facebook, QrCode, Share2, Heart, Download, User
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ interface ProfileData {
 }
 
 export function MinimalClean() {
+  const { username } = useParams<{ username?: string }>();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -48,7 +50,6 @@ export function MinimalClean() {
   const imageUrl = process.env.NEXT_PUBLIC_IMAGE_URL || "";
   const profileUrl = profile?.displayName ? `${imageUrl}/${profile.displayName}` : "";
 
-  // Social icons map
   const socialIconMap: Record<string, React.ReactNode> = {
     facebook: <Facebook size={16} />,
     instagram: <Instagram size={16} />,
@@ -59,43 +60,47 @@ export function MinimalClean() {
     tiktok: <Music size={16} />,
   };
 
-  // Fetch profile data
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user-profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-        });
+        let endpoint = "";
+        let headers: HeadersInit = { Accept: "application/json" };
 
+        if (username) {
+          endpoint = `${baseUrl}/profile/${username}`;
+        } else {
+          const token = localStorage.getItem("token");
+          if (!token) throw new Error("No authentication token found");
+          endpoint = `${baseUrl}/user-profile`;
+          headers = { ...headers, Authorization: `Bearer ${token}` };
+        }
+
+        const res = await fetch(endpoint, { headers });
         if (!res.ok) throw new Error("Failed to fetch profile");
 
         const data = await res.json();
         setProfile({
           displayName: data.display_name,
-          location: data.profile.location,
-          bio: data.profile.bio,
-          coverImage: data.profile.background_type === "image"
-            ? `${baseUrl}${data.profile.background_value}`
-            : undefined,
-          avatar: data.profile_image
-            
-          || undefined,
-          website: data.profile.website,
-          phone: data.profile.phone,
+          location: data.profile?.location,
+          bio: data.profile?.bio,
+          coverImage:
+            data.profile?.background_type === "image"
+              ? `${baseUrl}${data.profile?.background_value}`
+              : undefined,
+          avatar: data.profile_image || undefined,
+          website: data.profile?.website,
+          phone: data.profile?.phone,
           email: data.email,
-          socialLinks: data.profile.socialLinks || [],
+          socialLinks: data.profile?.socialLinks || [],
           template: {
-            backgroundColor: data.profile.background_type === "color"
-              ? data.profile.background_value
-              : "#f9fafb",
+            backgroundColor:
+              data.profile?.background_type === "color"
+                ? data.profile?.background_value
+                : "#f9fafb",
             textColor: "#111827",
-            fontFamily: data.profile.font_style || "Inter, sans-serif",
-            gradientFrom: data.profile.gradientFrom,
-            gradientTo: data.profile.gradientTo,
+            fontFamily: data.profile?.font_style || "Inter, sans-serif",
+            gradientFrom: data.profile?.gradientFrom,
+            gradientTo: data.profile?.gradientTo,
           },
         });
       } catch (err: any) {
@@ -106,16 +111,16 @@ export function MinimalClean() {
     };
 
     fetchProfile();
-  }, [baseUrl]);
-const handleShare = async () => {
+  }, [username, baseUrl]);
+
+  const handleShare = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
           title: "Check this out!",
           text: "Here’s something interesting for you.",
-          url: window.location.href, // current page URL
+          url: window.location.href,
         });
-        console.log("Content shared successfully!");
       } catch (err) {
         console.error("Error sharing:", err);
       }
@@ -123,6 +128,7 @@ const handleShare = async () => {
       alert("Sharing is not supported on this browser.");
     }
   };
+
   const copyUrl = () => {
     if (!profileUrl) return;
     navigator.clipboard.writeText(profileUrl);
@@ -134,7 +140,9 @@ const handleShare = async () => {
   if (error) return <p className="p-6 text-red-500">Error: {error}</p>;
   if (!profile) return <p className="p-6 text-gray-500">No profile found.</p>;
 
-  const { backgroundColor, textColor, fontFamily, gradientFrom, gradientTo } = profile.template || {};
+  const { backgroundColor, textColor, fontFamily, gradientFrom, gradientTo } =
+    profile.template || {};
+
 
   return (
     <div
