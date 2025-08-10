@@ -62,7 +62,7 @@ export default function Page() {
   return (
     <section className="py-12 px-4 bg-white">
       <div className="container mx-auto">
-        <TemplateFilters />
+        {/* <TemplateFilters /> */}
 
  
 

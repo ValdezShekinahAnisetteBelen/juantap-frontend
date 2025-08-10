@@ -1,134 +1,218 @@
-"use client"
+"use client";
 
-import type { Template } from "@/lib/template-data"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { PaymentModal } from "@/components/templates/payment-modal"
-import { Download, Heart, Share2, Crown, CheckCircle } from 'lucide-react'
-import { useEffect, useState } from "react"
-import { usePathname } from "next/navigation"
+import type { Template } from "@/lib/template-data";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { PaymentModal } from "@/components/templates/payment-modal";
+import {
+  Download,
+  Heart,
+  Share2,
+  Crown,
+  CheckCircle,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 interface TemplatePreviewSidebarProps {
-  template: Template
+  template: Template;
 }
 
 export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps) {
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
-  const [isLiked, setIsLiked] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isSaved, setIsSaved] = useState(false)
-  const isPremium = template.category === "premium"
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL
-  const pathname = usePathname()
+  // Separate states for saved/bought/pending/free and used/unused
+  const [savedStatus, setSavedStatus] = useState<
+    "saved" | "bought" | "pending" | "free"
+  >(template.category === "premium" ? "pending" : "free");
+  const [usedStatus, setUsedStatus] = useState<"used" | "unused">("unused");
+
+  const isPremium = template.category === "premium";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const pathname = usePathname();
 
   const authHeaders = () => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("token");
     return {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    }
-  }
+      Authorization: `Bearer ${token}`,
+    };
+  };
 
-  // Fetch saved templates & check if this slug is in the list
+  // Fetch saved/bought/pending/free statuses
   useEffect(() => {
-    const fetchSavedTemplates = async () => {
+    const fetchTemplateStatuses = async () => {
       try {
         const res = await fetch(`${API_URL}/templates/saved`, {
-          headers: authHeaders()
-        })
-        if (!res.ok) throw new Error("Failed to fetch saved templates")
-        const data = await res.json()
-        const currentSlug = pathname.split("/").pop()
-        const found = data.some((t: any) => t.slug === currentSlug)
-        setIsSaved(found)
-      } catch (err) {
-        console.error(err)
-      }
-    }
-    fetchSavedTemplates()
-  }, [pathname])
+          headers: authHeaders(),
+        });
+        if (!res.ok) throw new Error("Failed to fetch templates status");
+        const data: { slug: string; status: string }[] = await res.json();
+        const currentSlug = pathname.split("/").pop();
+        if (!currentSlug) return;
 
+        const found = data.find((t) => t.slug === currentSlug);
+
+        if (found) {
+          setSavedStatus(found.status as typeof savedStatus);
+        } else {
+          setSavedStatus(isPremium ? "pending" : "free");
+        }
+      } catch (err) {
+        console.error(err);
+        setSavedStatus(isPremium ? "pending" : "free");
+      }
+    };
+
+    fetchTemplateStatuses();
+  }, [pathname, template.id, isPremium, API_URL]);
+
+  // Fetch used templates independently, update usedStatus
+  useEffect(() => {
+    const fetchUsedTemplates = async () => {
+      try {
+        const res = await fetch(`${API_URL}/templates/used`, {
+          headers: authHeaders(),
+        });
+        if (!res.ok) throw new Error("Failed to fetch used templates");
+        const usedTemplates: { slug: string }[] = await res.json();
+        const currentSlug = pathname.split("/").pop();
+        if (!currentSlug) return;
+
+        if (usedTemplates.some((t) => t.slug === currentSlug)) {
+          setUsedStatus("used");
+        } else {
+          setUsedStatus("unused");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchUsedTemplates();
+  }, [pathname, API_URL]);
+
+  // Button state checks
+  const isSaved = savedStatus === "saved";
+  const isBought = savedStatus === "bought";
+  const isPending = savedStatus === "pending";
+  const isUsed = usedStatus === "used";
+
+  // Save/Unsave or Purchase button handler
   const handleGetTemplate = async () => {
     if (isPremium) {
-      setShowPaymentModal(true)
+      if (isBought) {
+        alert("You already own this template.");
+      } else if (isPending) {
+        alert("Your purchase is still pending approval.");
+      } else {
+        setShowPaymentModal(true);
+      }
     } else {
       if (isSaved) {
-        await unsaveTemplate()
+        await unsaveTemplate();
       } else {
-        await saveTemplate()
+        await saveTemplate();
       }
     }
-  }
+  };
 
   const saveTemplate = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
       const res = await fetch(`${API_URL}/templates/saved/${template.id}`, {
         method: "POST",
-        headers: authHeaders()
-      })
-      if (!res.ok) throw new Error("Failed to save template")
-      setIsSaved(true)
-      alert("Template saved to your account!")
+        headers: authHeaders(),
+      });
+      if (!res.ok) throw new Error("Failed to save template");
+      alert("Template saved to your account!");
+      setSavedStatus("saved");
     } catch (err) {
-      console.error(err)
-      alert("Error saving template")
+      console.error(err);
+      alert("Error saving template");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const unsaveTemplate = async () => {
-    setIsSaving(true)
+    setIsSaving(true);
     try {
       const res = await fetch(`${API_URL}/templates/saved/${template.id}`, {
         method: "DELETE",
-        headers: authHeaders()
-      })
-      if (!res.ok) throw new Error("Failed to unsave template")
-      setIsSaved(false)
-      alert("Template removed from your saved list.")
+        headers: authHeaders(),
+      });
+      if (!res.ok) throw new Error("Failed to unsave template");
+      alert("Template removed from your saved list.");
+      setSavedStatus("free");
     } catch (err) {
-      console.error(err)
-      alert("Error removing template")
+      console.error(err);
+      alert("Error removing template");
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
-  const useTemplate = async () => {
+  // Mark as used
+  const markUsed = async () => {
     try {
       const res = await fetch(`${API_URL}/templates/used/${template.id}`, {
         method: "POST",
-        headers: authHeaders()
-      })
-      if (!res.ok) throw new Error("Failed to mark as used")
-      alert("Template marked as used!")
+        headers: authHeaders(),
+      });
+      if (!res.ok) throw new Error("Failed to mark as used");
+      alert("Template marked as used!");
+      setUsedStatus("used");
     } catch (err) {
-      console.error(err)
-      alert("Error using template")
+      console.error(err);
+      alert("Error marking template as used");
     }
-  }
+  };
+
+  // Mark as unused (delete used mark)
+  const markUnused = async () => {
+    try {
+      const res = await fetch(`${API_URL}/templates/used/${template.id}`, {
+        method: "DELETE",
+        headers: authHeaders(),
+      });
+      if (!res.ok) throw new Error("Failed to mark as unused");
+      alert("Template marked as unused.");
+      setUsedStatus("unused");
+    } catch (err) {
+      console.error(err);
+      alert("Error marking template as unused");
+    }
+  };
+
+  const toggleUsed = () => {
+    if (isUsed) {
+      markUnused();
+    } else {
+      markUsed();
+    }
+  };
 
   const handleShare = async () => {
-    const url = `${window.location.origin}/templates/${template.id}`
+    const url = `${window.location.origin}/templates/${template.slug}`;
     if (navigator.share) {
       try {
         await navigator.share({
           title: `${template.name} Template - JuanTap`,
           text: template.description,
-          url: url,
-        })
+          url,
+        });
       } catch {
-        console.log("Share cancelled")
+        console.log("Share cancelled");
       }
     } else {
-      await navigator.clipboard.writeText(url)
-      alert("Template link copied to clipboard!")
+      await navigator.clipboard.writeText(url);
+      alert("Template link copied to clipboard!");
     }
-  }
+  };
 
   return (
     <>
@@ -147,11 +231,17 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
                 <div className="space-y-2">
                   {template.originalPrice && template.discount ? (
                     <div className="flex items-center justify-center gap-2">
-                      <span className="text-3xl font-bold text-gray-900">₱{template.price}</span>
-                      <span className="text-xl text-gray-500 line-through">₱{template.originalPrice}</span>
+                      <span className="text-3xl font-bold text-gray-900">
+                        ₱{template.price}
+                      </span>
+                      <span className="text-xl text-gray-500 line-through">
+                        ₱{template.originalPrice}
+                      </span>
                     </div>
                   ) : (
-                    <span className="text-3xl font-bold text-gray-900">₱{template.price}</span>
+                    <span className="text-3xl font-bold text-gray-900">
+                      ₱{template.price}
+                    </span>
                   )}
                   <p className="text-sm text-gray-600">One-time payment</p>
                 </div>
@@ -159,15 +249,22 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
                 <div className="space-y-2">
                   <span className="text-3xl font-bold text-green-600">Free</span>
                   <p className="text-sm text-gray-600">
-                    {isSaved ? "Already saved to your account" : "No payment required"}
+                    {isSaved
+                      ? "Already saved to your account"
+                      : "No payment required"}
                   </p>
                 </div>
               )}
             </div>
 
+            {/* Save / Purchase Button */}
             <Button
               onClick={handleGetTemplate}
-              disabled={isSaving}
+              disabled={
+                isSaving ||
+                (isPremium && (isBought || isPending)) ||
+                (!isPremium && isSaved)
+              }
               className={`w-full ${
                 isPremium
                   ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
@@ -179,22 +276,51 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
             >
               <Download className="w-4 h-4 mr-2" />
               {isPremium
-                ? "Purchase Template"
+                ? isBought
+                  ? "Owned"
+                  : isPending
+                  ? "Pending Approval"
+                  : "Purchase Template"
                 : isSaving
-                ? (isSaved ? "Removing..." : "Saving...")
-                : (isSaved ? "Unsave" : "Save Free")}
+                ? isSaved
+                  ? "Removing..."
+                  : "Saving..."
+                : isSaved
+                ? "Unsave"
+                : "Save Free"}
             </Button>
 
-            <div className="flex gap-2">
+            {/* New Used/Unused toggle button */}
+            {(isBought || isSaved) && (
+              <Button
+                onClick={toggleUsed}
+                className={`w-full mt-2 ${
+                  isUsed ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+                }`}
+                size="lg"
+              >
+                {isUsed ? "Mark as Unused" : "Mark as Used"}
+              </Button>
+            )}
+
+            <div className="flex gap-2 mt-4">
               <Button
                 variant="outline"
                 onClick={() => setIsLiked(!isLiked)}
-                className={`flex-1 ${isLiked ? "text-red-600 border-red-200 bg-red-50" : ""}`}
+                className={`flex-1 ${
+                  isLiked ? "text-red-600 border-red-200 bg-red-50" : ""
+                }`}
               >
-                <Heart className={`w-4 h-4 mr-1 ${isLiked ? "fill-current" : ""}`} />
+                <Heart
+                  className={`w-4 h-4 mr-1 ${isLiked ? "fill-current" : ""}`}
+                />
                 Like
               </Button>
-              <Button variant="outline" onClick={handleShare} className="flex-1 bg-transparent">
+              <Button
+                variant="outline"
+                onClick={handleShare}
+                className="flex-1 bg-transparent"
+              >
                 <Share2 className="w-4 h-4 mr-1" />
                 Share
               </Button>
@@ -238,7 +364,7 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
                   "Full customization options",
                   "Mobile responsive design",
                   "Priority customer support",
-                  "Lifetime updates"
+                  "Lifetime updates",
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-600" />
@@ -255,8 +381,12 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         template={template}
-        onPaymentSuccess={useTemplate}
+        onPaymentSuccess={() => {
+          setShowPaymentModal(false);
+          // After successful payment, refresh statuses
+          setSavedStatus("bought");
+        }}
       />
     </>
-  )
+  );
 }

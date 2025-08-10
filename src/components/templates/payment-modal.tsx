@@ -1,5 +1,6 @@
 "use client";
 
+import axios from "axios";
 import type { Template } from "@/lib/template-data";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -89,14 +90,12 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
       formData.append("notes", notes);
       formData.append("receipt_img", screenshot);
 
-      const res = await fetch("/api/payment/submit", {
-        method: "POST",
-        body: formData,
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/payment/submit`, formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+          "Content-Type": "multipart/form-data",
+        },
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to submit payment");
-      }
 
       setIsSubmitted(true);
     } catch (error) {
@@ -155,10 +154,16 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <img src={template.thumbnail || "/placeholder.svg"} alt={template.name} className="w-16 h-16 rounded-lg object-cover" />
+                  <img
+                    src={template.thumbnail || "/placeholder.svg"}
+                    alt={template.name}
+                    className="w-16 h-16 rounded-lg object-cover"
+                  />
                   <div>
                     <h4 className="font-semibold">{template.name}</h4>
-                    <p className="text-sm text-gray-600">{template.category === "premium" ? "Premium Template" : "Free Template"}</p>
+                    <p className="text-sm text-gray-600">
+                      {template.category === "premium" ? "Premium Template" : "Free Template"}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -208,9 +213,7 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
                   <Card
                     key={method.id}
                     className={`cursor-pointer transition-all ${
-                      selectedMethod === method.id
-                        ? "border-purple-500 bg-purple-50"
-                        : "hover:border-gray-300 bg-transparent"
+                      selectedMethod === method.id ? "border-purple-500 bg-purple-50" : "hover:border-gray-300 bg-transparent"
                     }`}
                     onClick={() => setSelectedMethod(method.id)}
                   >
@@ -223,9 +226,7 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
                         </div>
                         <div
                           className={`w-4 h-4 rounded-full border-2 ${
-                            selectedMethod === method.id
-                              ? "border-purple-500 bg-purple-500"
-                              : "border-gray-300"
+                            selectedMethod === method.id ? "border-purple-500 bg-purple-500" : "border-gray-300"
                           }`}
                         >
                           {selectedMethod === method.id && <div className="w-2 h-2 bg-white rounded-full m-0.5" />}
@@ -242,9 +243,7 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
               <Card className="bg-gray-50">
                 <CardContent className="p-4">
                   <h4 className="font-semibold mb-2">Payment Details</h4>
-                  <p className="text-sm text-gray-700">
-                    {paymentMethods.find((m) => m.id === selectedMethod)?.accountInfo}
-                  </p>
+                  <p className="text-sm text-gray-700">{paymentMethods.find((m) => m.id === selectedMethod)?.accountInfo}</p>
                   <p className="text-sm font-medium text-purple-600 mt-2">Amount: ₱{template.price}</p>
                 </CardContent>
               </Card>
@@ -263,9 +262,7 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
                   >
                     <div className="flex flex-col items-center justify-center pt-5 pb-6">
                       <Upload className="w-8 h-8 mb-2 text-gray-400" />
-                      <p className="mb-2 text-sm text-gray-500">
-                        {screenshot ? screenshot.name : "Click to upload screenshot"}
-                      </p>
+                      <p className="mb-2 text-sm text-gray-500">{screenshot ? screenshot.name : "Click to upload screenshot"}</p>
                       <p className="text-xs text-gray-500">PNG, JPG up to 10MB</p>
                     </div>
                     <input
