@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Upload, CreditCard, Smartphone, Building, CheckCircle, AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { Upload, CreditCard, Smartphone, Building, CheckCircle, AlertCircle, X } from "lucide-react";
+import { useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 
 interface PaymentModalProps {
@@ -58,6 +58,9 @@ const paymentMethods: PaymentMethod[] = [
   },
 ];
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+
 export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
   const pathname = usePathname();
   const currentSlug = pathname.split("/").pop() || "";
@@ -68,11 +71,43 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string>("");
+  const [fileError, setFileError] = useState<string>("");
+
+  const validateFile = useCallback((file: File): string | null => {
+    if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      return "Please upload a valid image file (JPEG, PNG, or WebP)";
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return "File size must be less than 10MB";
+    }
+    return null;
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    setFileError("");
+    
     if (file) {
+      const validationError = validateFile(file);
+      if (validationError) {
+        setFileError(validationError);
+        setScreenshot(null);
+        // Clear the input
+        e.target.value = '';
+        return;
+      }
       setScreenshot(file);
+    }
+  };
+
+  const removeFile = () => {
+    setScreenshot(null);
+    setFileError("");
+    // Clear the file input
+    const fileInput = document.getElementById('screenshot') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
     }
   };
 
@@ -80,6 +115,8 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
     e.preventDefault();
     if (!selectedMethod || !screenshot) return;
 
+    // Clear previous errors
+    setError("");
     setIsSubmitting(true);
 
     try {
@@ -90,17 +127,34 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
       formData.append("notes", notes);
       formData.append("receipt_img", screenshot);
 
+      // Get token from a more secure method if available
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+
       await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/payment/submit`, formData, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+          Authorization: `Bearer ${token || ""}`,
           "Content-Type": "multipart/form-data",
         },
+        timeout: 30000, // 30 second timeout
       });
 
       setIsSubmitted(true);
     } catch (error) {
       console.error("Payment submission failed:", error);
-      alert("Submission failed. Please try again.");
+      
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          setError("Authentication failed. Please log in again.");
+        } else if (error.response?.status === 413) {
+          setError("File too large. Please upload a smaller image.");
+        } else if (error.code === 'ECONNABORTED') {
+          setError("Request timed out. Please try again.");
+        } else {
+          setError(error.response?.data?.message || "Submission failed. Please try again.");
+        }
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -113,11 +167,21 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
     setNotes("");
     setIsSubmitted(false);
     setIsSubmitting(false);
+    setError("");
+    setFileError("");
   };
 
   const handleClose = () => {
     resetModal();
     onClose();
+  };
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   if (isSubmitted) {
@@ -149,6 +213,18 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* Error Display */}
+          {error && (
+            <Card className="border-red-200 bg-red-50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-red-700">
+                  <AlertCircle className="w-5 h-5" />
+                  <span className="text-sm font-medium">{error}</span>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Template Summary */}
           <Card>
             <CardContent className="p-4">
@@ -255,26 +331,59 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
                 Upload Payment Screenshot *
               </Label>
               <div className="mt-2">
-                <div className="flex items-center justify-center w-full">
-                  <label
-                    htmlFor="screenshot"
-                    className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
-                  >
-                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                      <Upload className="w-8 h-8 mb-2 text-gray-400" />
-                      <p className="mb-2 text-sm text-gray-500">{screenshot ? screenshot.name : "Click to upload screenshot"}</p>
-                      <p className="text-xs text-gray-500">PNG, JPG up to 10MB</p>
+                {screenshot ? (
+                  <div className="border-2 border-gray-200 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={URL.createObjectURL(screenshot)}
+                          alt="Payment screenshot preview"
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                        <div>
+                          <p className="font-medium text-sm">{screenshot.name}</p>
+                          <p className="text-xs text-gray-500">{formatFileSize(screenshot.size)}</p>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={removeFile}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
                     </div>
-                    <input
-                      id="screenshot"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                      required
-                    />
-                  </label>
-                </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center w-full">
+                    <label
+                      htmlFor="screenshot"
+                      className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100"
+                    >
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <Upload className="w-8 h-8 mb-2 text-gray-400" />
+                        <p className="mb-2 text-sm text-gray-500">Click to upload screenshot</p>
+                        <p className="text-xs text-gray-500">PNG, JPG, WebP up to 10MB</p>
+                      </div>
+                      <input
+                        id="screenshot"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        required
+                      />
+                    </label>
+                  </div>
+                )}
+                {fileError && (
+                  <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {fileError}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -286,6 +395,7 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
                 placeholder="Enter transaction reference number"
                 value={referenceNumber}
                 onChange={(e) => setReferenceNumber(e.target.value)}
+                maxLength={50}
               />
             </div>
 
@@ -298,17 +408,25 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
+                maxLength={500}
               />
+              <p className="text-xs text-gray-500 mt-1">{notes.length}/500 characters</p>
             </div>
 
             {/* Submit Button */}
             <div className="flex gap-3">
-              <Button type="button" variant="outline" onClick={handleClose} className="flex-1 bg-transparent">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleClose} 
+                className="flex-1 bg-transparent"
+                disabled={isSubmitting}
+              >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={!selectedMethod || !screenshot || isSubmitting}
+                disabled={!selectedMethod || !screenshot || isSubmitting || !!fileError}
                 className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
               >
                 {isSubmitting ? "Submitting..." : "Submit Payment Proof"}

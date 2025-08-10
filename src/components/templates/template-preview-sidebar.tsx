@@ -56,11 +56,12 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
 
         const found = data.find((t) => t.slug === currentSlug);
 
-        if (found) {
-          setSavedStatus(found.status as typeof savedStatus);
-        } else {
-          setSavedStatus(isPremium ? "pending" : "free");
-        }
+       if (found) {
+  setSavedStatus(found.status as typeof savedStatus);
+} else {
+  setSavedStatus(isPremium ? "locked" : "free"); 
+}
+
       } catch (err) {
         console.error(err);
         setSavedStatus(isPremium ? "pending" : "free");

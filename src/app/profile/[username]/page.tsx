@@ -59,7 +59,7 @@ export default function PublicProfilePage() {
 
       {/* Main content with sidebars */}
         <main className="flex-1">
-          <div className="my-6">
+          <div className="">
             <PreviewComponent />
           </div>
        

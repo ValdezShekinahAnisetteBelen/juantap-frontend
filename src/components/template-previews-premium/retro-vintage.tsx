@@ -10,6 +10,8 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { QRCodeSVG } from "qrcode.react";
+import { usePathname } from "next/navigation";
+
 
 interface SocialLink {
   id: string;
@@ -46,6 +48,7 @@ export function RetroVintage() {
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [liked, setLiked] = useState(false);
+const pathname = usePathname();
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
   const imageUrl = process.env.NEXT_PUBLIC_IMAGE_URL || "";
@@ -152,8 +155,9 @@ export function RetroVintage() {
 
   return (
     <div
-      className="w-full h-full p-4 flex justify-center items-center"
-      style={{
+ className={`w-full p-4 flex justify-center items-center ${
+    pathname.startsWith("/profile/") ? "min-h-screen" : ""
+  }`}      style={{
         background: bg,
         color: text,
         fontFamily: font,

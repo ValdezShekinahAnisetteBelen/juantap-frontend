@@ -10,6 +10,8 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { QRCodeSVG } from "qrcode.react";
+import { usePathname } from "next/navigation";
+
 
 interface SocialLink {
   id: string;
@@ -49,6 +51,7 @@ export function GradientModern() {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
   const imageUrl = process.env.NEXT_PUBLIC_IMAGE_URL || "";
   const profileUrl = profile?.displayName ? `${imageUrl}/${profile.displayName}` : "";
+const pathname = usePathname();
 
   const socialIconMap: Record<string, React.ReactNode> = {
     facebook: <Facebook size={14} />,
@@ -151,8 +154,9 @@ export function GradientModern() {
 
   return (
     <div
-      className="w-full  p-4 flex justify-center items-center"
-      style={{
+ className={`w-full p-4 flex justify-center items-center ${
+    pathname.startsWith("/profile/") ? "min-h-screen" : ""
+  }`}      style={{
         background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
         color: textColor,
         fontFamily: fontFamily,

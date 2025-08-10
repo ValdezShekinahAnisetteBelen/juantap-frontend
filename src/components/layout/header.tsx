@@ -19,7 +19,7 @@ import { Edit, Eye, Settings } from "lucide-react"
 const navigationItems = [
   { href: "#features", label: "Features" },
   { href: "#how-it-works", label: "How It Works" },
-  { href: "/", label: "Templates" },
+  { href: "/templates", label: "Templates" },
 ]
 
 export function Header() {

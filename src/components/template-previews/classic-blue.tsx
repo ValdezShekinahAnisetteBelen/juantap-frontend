@@ -10,6 +10,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { QRCodeSVG } from "qrcode.react";
+import { usePathname } from "next/navigation";
 
 interface SocialLink {
   id: string;
@@ -60,6 +61,7 @@ export function ClassicBlue() {
     youtube: <Youtube size={14} />,
     tiktok: <Music size={14} />,
   };
+const pathname = usePathname();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -152,8 +154,9 @@ export function ClassicBlue() {
 
   return (
     <div
-      className="w-full  p-4 flex justify-center items-center"
-      style={{
+ className={`w-full p-4 flex justify-center items-center ${
+    pathname.startsWith("/profile/") ? "min-h-screen" : ""
+  }`}      style={{
         background: backgroundColor,
         color: textColor,
         fontFamily: fontFamily,

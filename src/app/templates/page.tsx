@@ -1,9 +1,7 @@
 import { Header } from "@/components/layout/header"
-import { HeroSection } from "@/components/sections/hero-section"
-import { FeaturesSection } from "@/components/sections/features-section"
-import { HowItWorksSection } from "@/components/sections/how-it-works-section"
-import { TemplatesSection } from "@/components/sections/templates-section"
-import { CTASection } from "@/components/sections/cta-section"
+import { TemplateGallery } from "@/components/templates/template-gallery"
+import { TemplateHeader } from "@/components/templates/template-header"
+
 import { Footer } from "@/components/layout/footer"
 
 export default function HomePage() {
@@ -20,11 +18,8 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <Header />
       <main>
-        <HeroSection />
-        <FeaturesSection />
-        <HowItWorksSection />
-        <TemplatesSection />
-        <CTASection />
+       <TemplateHeader />
+        <TemplateGallery />
       </main>
       <Footer />
     </div>
