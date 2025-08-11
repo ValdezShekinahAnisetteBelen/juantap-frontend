@@ -15,6 +15,7 @@ import { usePathname } from "next/navigation";
 interface SocialLink {
   id: string;
   username: string;
+  platform: string; 
   url: string;
   isVisible: boolean;
 }
@@ -217,7 +218,7 @@ const pathname = usePathname();
               textShadow: `0 0 5px rgba(255,255,255,0.5)`,
             }}
           >
-            {profile.displayName || "Name"}
+            {profile.displayName || "Display Name"}
           </h1>
           {profile.location && (
             <div className="flex items-center gap-1 mt-1">
@@ -307,9 +308,11 @@ const pathname = usePathname();
               </h3>
               <div className="flex flex-wrap gap-2">
                 {profile.socialLinks
-                  .filter((link) => link.isVisible)
-                  .map((link) => {
-                    const icon = socialIconMap[link.id.toLowerCase()] || <Globe size={14} />;
+                             .filter(link => link.isVisible)
+                             .map(link => {
+                               // normalize key: lowercase and trim
+                               const platformKey = (link.platform || link.id || "").trim().toLowerCase();
+                               const icon = socialIconMap[platformKey] || <Globe size={14} />;
                     return (
                       <a
                         key={link.id}
@@ -350,19 +353,7 @@ const pathname = usePathname();
             <Share2 className="w-4 h-4 mb-1" style={{ filter: `drop-shadow(0 0 3px ${secondary})` }} />
             Share
           </button>
-          <button
-            className={`flex flex-col items-center text-xs transition ${
-              liked ? "text-red-400" : "text-white/80 hover:text-white"
-            }`}
-            onClick={() => setLiked(!liked)}
-          >
-            <Heart className={`w-4 h-4 mb-1 ${liked ? "fill-red-400" : ""}`} />
-            Like
-          </button>
-          <button className="flex flex-col items-center text-xs text-white/80 hover:text-white transition">
-            <Download className="w-4 h-4 mb-1" style={{ filter: `drop-shadow(0 0 3px ${accent})` }} />
-            Save
-          </button>
+         
         </div>
       </div>
 

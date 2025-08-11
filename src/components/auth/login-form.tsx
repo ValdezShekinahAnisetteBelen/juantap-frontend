@@ -4,13 +4,12 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { login } from "@/lib/api/auth"
+import { toast } from "sonner"   // <-- import toast here
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+import { Card, CardContent } from "@/components/ui/card"
 import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react"
-import { SocialLoginButtons } from "@/components/auth/social-login-buttons"
 import Link from "next/link"
 
 interface LoginFormData {
@@ -67,12 +66,18 @@ export function LoginForm() {
 
       if (response.data.access_token) {
         localStorage.setItem("token", response.data.access_token)
+        toast.success("Login successful!")   // <-- show toast here
+        router.push("/")
       }
-
-      router.push("/") 
     } catch (error: any) {
-      if (error.response?.status === 422) {
-        setErrors({ general: error.response.data.message || "Invalid credentials." })
+      console.log("Login error response:", error.response)
+
+      const message = error.response?.data?.message || error.response?.data?.error || ""
+
+      if (message.toLowerCase().includes("account not verified")) {
+        setErrors({ general: "Your account is not verified. Please verify your email before logging in." })
+      } else if (error.response?.status === 422) {
+        setErrors({ general: message || "Invalid credentials." })
       } else {
         setErrors({ general: "Something went wrong. Please try again." })
       }
@@ -90,13 +95,13 @@ export function LoginForm() {
 
   return (
     <Card className="shadow-xl border-0">
-     
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           {errors.general && (
             <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{errors.general}</div>
           )}
 
+          {/* Email input */}
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <div className="relative">
@@ -114,6 +119,7 @@ export function LoginForm() {
             {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
           </div>
 
+          {/* Password input */}
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <div className="relative">
@@ -139,6 +145,7 @@ export function LoginForm() {
             {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
           </div>
 
+          {/* Remember and forgot */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <input
@@ -155,6 +162,7 @@ export function LoginForm() {
             </Link>
           </div>
 
+          {/* Submit button */}
           <Button
             type="submit"
             className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"

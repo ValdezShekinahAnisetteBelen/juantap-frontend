@@ -38,7 +38,7 @@ export function QRCodeModal({ isOpen, onClose, profile }: QRCodeModalProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <QrCode className="w-5 h-5" />
-            QR Code for {profile.displayName}
+            QR Code for {profile.username}
           </DialogTitle>
         </DialogHeader>
 

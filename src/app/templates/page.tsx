@@ -1,11 +1,10 @@
 import { Header } from "@/components/layout/header"
-import { TemplateGallery } from "@/components/templates/template-gallery"
 import { TemplateHeader } from "@/components/templates/template-header"
-
+import TemplateGalleryServer from "@/components/templates/template-gallery-server"
 import { Footer } from "@/components/layout/footer"
 
 export default function HomePage() {
-  // Set to true to show authenticated header with profile dropdown
+  // Auth info (not used yet in this snippet, but you can pass it to Header if needed)
   const isAuthenticated = true
   const user = {
     name: "John Doe",
@@ -18,8 +17,9 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <Header />
       <main>
-       <TemplateHeader />
-        <TemplateGallery />
+        <TemplateHeader />
+        {/* Fetches templates server-side, passes them to the gallery */}
+        <TemplateGalleryServer />
       </main>
       <Footer />
     </div>

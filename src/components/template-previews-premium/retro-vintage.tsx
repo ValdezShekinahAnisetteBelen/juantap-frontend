@@ -16,6 +16,7 @@ import { usePathname } from "next/navigation";
 interface SocialLink {
   id: string;
   username: string;
+  platform: string;
   url: string;
   isVisible: boolean;
 }
@@ -240,7 +241,7 @@ const pathname = usePathname();
               textShadow: `0 0 10px ${primary}, 0 0 20px ${accent}`,
             }}
           >
-            {profile?.displayName || "RETRO STAR"}
+            {profile?.displayName || "Display Name"}
           </h1>
           {profile?.location && (
             <p className="flex items-center gap-1 text-xs opacity-80 mt-1">
@@ -362,10 +363,12 @@ const pathname = usePathname();
                 Social
               </h3>
               <div className="flex flex-wrap justify-center gap-2">
-                {profile.socialLinks
-                  .filter((link) => link.isVisible)
-                  .map((link) => {
-                    const icon = socialIconMap[link.id.toLowerCase()] || <Globe size={14} />;
+                  {profile.socialLinks
+                               .filter(link => link.isVisible)
+                               .map(link => {
+                                 // normalize key: lowercase and trim
+                                 const platformKey = (link.platform || link.id || "").trim().toLowerCase();
+                                 const icon = socialIconMap[platformKey] || <Globe size={14} />;
                     return (
                       <a
                         key={link.id}
@@ -420,27 +423,7 @@ const pathname = usePathname();
               <Share2 className="w-4 h-4 mb-1" />
               <span>SHARE</span>
             </button>
-            <button
-              className="flex flex-col items-center text-xs hover:scale-110 transition transform font-bold"
-              onClick={() => setLiked(!liked)}
-              style={{ 
-                color: liked ? "#ff1744" : accent,
-                textShadow: `0 0 5px ${liked ? "#ff1744" : accent}`,
-              }}
-            >
-              <Heart className={`w-4 h-4 mb-1 ${liked ? "fill-current" : ""}`} />
-              <span>LOVE</span>
-            </button>
-            <button 
-              className="flex flex-col items-center text-xs hover:scale-110 transition transform font-bold"
-              style={{ 
-                color: primary,
-                textShadow: `0 0 5px ${primary}`,
-              }}
-            >
-              <Download className="w-4 h-4 mb-1" />
-              <span>SAVE</span>
-            </button>
+           
           </div>
         </div>
       </div>

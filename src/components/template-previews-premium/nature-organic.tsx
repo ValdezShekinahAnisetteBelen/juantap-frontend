@@ -15,6 +15,7 @@ import { usePathname } from "next/navigation";
 interface SocialLink {
   id: string;
   username: string;
+  platform: string; 
   url: string;
   isVisible: boolean;
 }
@@ -211,7 +212,7 @@ const pathname = usePathname();
 
           {/* Name & Bio */}
           <h1 className="mt-4 text-lg font-semibold" style={{ color: secondary }}>
-            {profile?.displayName || "Name"}
+            {profile?.displayName || "Display Name"}
           </h1>
           {profile?.location && (
             <p className="flex items-center gap-1 text-xs text-gray-500 mt-1">
@@ -289,10 +290,12 @@ const pathname = usePathname();
             <div className="px-6 py-3">
               <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Connect</h3>
               <div className="flex flex-wrap gap-2">
-                {profile.socialLinks
-                  .filter((link) => link.isVisible)
-                  .map((link) => {
-                    const icon = socialIconMap[link.id.toLowerCase()] || <Globe size={14} />;
+                 {profile.socialLinks
+                              .filter(link => link.isVisible)
+                              .map(link => {
+                                // normalize key: lowercase and trim
+                                const platformKey = (link.platform || link.id || "").trim().toLowerCase();
+                                const icon = socialIconMap[platformKey] || <Globe size={14} />;
                     return (
                       <a
                         key={link.id}
@@ -331,21 +334,7 @@ const pathname = usePathname();
               <Share2 className="w-4 h-4 mb-1" />
               <span>Share</span>
             </button>
-            <button
-              className={`flex flex-col items-center text-xs hover:opacity-70 transition ${liked ? "text-red-500" : ""}`}
-              onClick={() => setLiked(!liked)}
-              style={{ color: liked ? "#ef4444" : secondary }}
-            >
-              <Heart className={`w-4 h-4 mb-1 ${liked ? "fill-red-500" : ""}`} />
-              <span>Like</span>
-            </button>
-            <button 
-              className="flex flex-col items-center text-xs hover:opacity-70 transition"
-              style={{ color: secondary }}
-            >
-              <Download className="w-4 h-4 mb-1" />
-              <span>Save</span>
-            </button>
+          
           </div>
         </div>
       </div>

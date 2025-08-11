@@ -15,6 +15,9 @@ import {
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 
+// Import Sonner toast
+import { toast, Toaster } from "sonner";
+
 interface TemplatePreviewSidebarProps {
   template: Template;
 }
@@ -24,9 +27,8 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
   const [isLiked, setIsLiked] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Separate states for saved/bought/pending/free and used/unused
   const [savedStatus, setSavedStatus] = useState<
-    "saved" | "bought" | "pending" | "free"
+    "saved" | "bought" | "pending" | "free" | "locked"
   >(template.category === "premium" ? "pending" : "free");
   const [usedStatus, setUsedStatus] = useState<"used" | "unused">("unused");
 
@@ -42,7 +44,6 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
     };
   };
 
-  // Fetch saved/bought/pending/free statuses
   useEffect(() => {
     const fetchTemplateStatuses = async () => {
       try {
@@ -56,12 +57,11 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
 
         const found = data.find((t) => t.slug === currentSlug);
 
-       if (found) {
-  setSavedStatus(found.status as typeof savedStatus);
-} else {
-  setSavedStatus(isPremium ? "locked" : "free"); 
-}
-
+        if (found) {
+          setSavedStatus(found.status as typeof savedStatus);
+        } else {
+          setSavedStatus(isPremium ? "locked" : "free");
+        }
       } catch (err) {
         console.error(err);
         setSavedStatus(isPremium ? "pending" : "free");
@@ -71,7 +71,6 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
     fetchTemplateStatuses();
   }, [pathname, template.id, isPremium, API_URL]);
 
-  // Fetch used templates independently, update usedStatus
   useEffect(() => {
     const fetchUsedTemplates = async () => {
       try {
@@ -96,19 +95,17 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
     fetchUsedTemplates();
   }, [pathname, API_URL]);
 
-  // Button state checks
   const isSaved = savedStatus === "saved";
   const isBought = savedStatus === "bought";
   const isPending = savedStatus === "pending";
   const isUsed = usedStatus === "used";
 
-  // Save/Unsave or Purchase button handler
   const handleGetTemplate = async () => {
     if (isPremium) {
       if (isBought) {
-        alert("You already own this template.");
+        toast.message("You already own this template.");
       } else if (isPending) {
-        alert("Your purchase is still pending approval.");
+        toast.message("Your purchase is still pending approval.");
       } else {
         setShowPaymentModal(true);
       }
@@ -129,11 +126,11 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
         headers: authHeaders(),
       });
       if (!res.ok) throw new Error("Failed to save template");
-      alert("Template saved to your account!");
+      toast.success("Template saved to your account!");
       setSavedStatus("saved");
     } catch (err) {
       console.error(err);
-      alert("Error saving template");
+      toast.error("Error saving template");
     } finally {
       setIsSaving(false);
     }
@@ -147,17 +144,16 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
         headers: authHeaders(),
       });
       if (!res.ok) throw new Error("Failed to unsave template");
-      alert("Template removed from your saved list.");
+      toast.success("Template removed from your saved list.");
       setSavedStatus("free");
     } catch (err) {
       console.error(err);
-      alert("Error removing template");
+      toast.error("Error removing template");
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Mark as used
   const markUsed = async () => {
     try {
       const res = await fetch(`${API_URL}/templates/used/${template.id}`, {
@@ -165,15 +161,14 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
         headers: authHeaders(),
       });
       if (!res.ok) throw new Error("Failed to mark as used");
-      alert("Template marked as used!");
+      toast.success("Template marked as used!");
       setUsedStatus("used");
     } catch (err) {
       console.error(err);
-      alert("Error marking template as used");
+      toast.error("Error marking template as used");
     }
   };
 
-  // Mark as unused (delete used mark)
   const markUnused = async () => {
     try {
       const res = await fetch(`${API_URL}/templates/used/${template.id}`, {
@@ -181,11 +176,11 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
         headers: authHeaders(),
       });
       if (!res.ok) throw new Error("Failed to mark as unused");
-      alert("Template marked as unused.");
+      toast.success("Template marked as unused.");
       setUsedStatus("unused");
     } catch (err) {
       console.error(err);
-      alert("Error marking template as unused");
+      toast.error("Error marking template as unused");
     }
   };
 
@@ -211,12 +206,15 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
       }
     } else {
       await navigator.clipboard.writeText(url);
-      alert("Template link copied to clipboard!");
+      toast.success("Template link copied to clipboard!");
     }
   };
 
   return (
     <>
+      {/* Sonner Toaster */}
+      <Toaster position="top-center" richColors />
+
       <div className="space-y-6">
         {/* Purchase Card */}
         <Card>
@@ -291,7 +289,7 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
                 : "Save Free"}
             </Button>
 
-            {/* New Used/Unused toggle button */}
+            {/* Used/Unused toggle button */}
             {(isBought || isSaved) && (
               <Button
                 onClick={toggleUsed}
@@ -305,18 +303,6 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
             )}
 
             <div className="flex gap-2 mt-4">
-              <Button
-                variant="outline"
-                onClick={() => setIsLiked(!isLiked)}
-                className={`flex-1 ${
-                  isLiked ? "text-red-600 border-red-200 bg-red-50" : ""
-                }`}
-              >
-                <Heart
-                  className={`w-4 h-4 mr-1 ${isLiked ? "fill-current" : ""}`}
-                />
-                Like
-              </Button>
               <Button
                 variant="outline"
                 onClick={handleShare}
@@ -384,8 +370,8 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
         template={template}
         onPaymentSuccess={() => {
           setShowPaymentModal(false);
-          // After successful payment, refresh statuses
           setSavedStatus("bought");
+          toast.success("Payment successful! Template unlocked.");
         }}
       />
     </>

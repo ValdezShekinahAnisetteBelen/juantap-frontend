@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/blocks/logo"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -16,21 +16,16 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Edit, Eye, Settings } from "lucide-react"
 
-const navigationItems = [
-  { href: "#features", label: "Features" },
-  { href: "#how-it-works", label: "How It Works" },
-  { href: "/templates", label: "Templates" },
-]
-
 export function Header() {
   const [user, setUser] = useState<any>(null)
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("token")
-      if (!token) return
+    const token = localStorage.getItem("token")
+    if (!token) return
 
+    const fetchUser = async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user`, {
           headers: {
@@ -58,25 +53,82 @@ export function Header() {
     router.push("/login")
   }
 
+const isActive = (path: string) => {
+  if (path === "/") {
+    // Highlight Home only if we are exactly at "/" with no section hash
+    return pathname === "/" && hash === "";
+  }
+  return pathname.startsWith(path);
+};
+
+const [hash, setHash] = useState("");
+
+useEffect(() => {
+  const updateHash = () => setHash(window.location.hash);
+  updateHash(); // run on mount
+  window.addEventListener("hashchange", updateHash);
+  return () => window.removeEventListener("hashchange", updateHash);
+}, []);
+
+
   return (
     <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Logo />
 
         <nav className="hidden md:flex items-center space-x-6">
-          {navigationItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-gray-600 hover:text-gray-900 transition-colors"
+          {/* Always show Home */}
+        <Link
+          href="/"
+          className={`transition-colors ${
+            isActive("/") ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          Home
+        </Link>
+
+
+          {/* Show Features & How It Works only on home */}
+          {pathname === "/" && (
+            <>
+             <Link
+              href="/#features"
+              className={`transition-colors ${
+                hash === "#features"
+                  ? "text-blue-600 font-semibold"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
             >
-              {item.label}
+              Features
             </Link>
-          ))}
+
+            <Link
+              href="/#how-it-works"
+              className={`transition-colors ${
+                hash === "#how-it-works"
+                  ? "text-blue-600 font-semibold"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              How It Works
+            </Link>
+
+            </>
+          )}
+
+          {(pathname === "/" || pathname.startsWith("/templates")) && (
+            <Link
+              href="/templates"
+              className={`transition-colors ${
+                isActive("/templates") ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              Templates
+            </Link>
+          )}
         </nav>
 
         <div className="flex items-center space-x-3">
-          {/* Profile Dropdown with Avatar */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
@@ -86,7 +138,12 @@ export function Header() {
                     alt="Profile"
                   />
                   <AvatarFallback>
-                    {user?.name ? user.name.split(" ").map((n) => n[0]).join("") : "?"}
+                    {user?.name
+                      ? user.name
+                          .split(" ")
+                          .map((n) => n[0]?.toUpperCase())
+                          .join("")
+                      : "?"}
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -94,8 +151,12 @@ export function Header() {
             <DropdownMenuContent className="w-56" align="end">
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.name || "Loading..."}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user?.name || "Loading..."}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user?.email || ""}
+                  </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />

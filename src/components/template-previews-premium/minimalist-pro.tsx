@@ -15,6 +15,7 @@ import { usePathname } from "next/navigation";
 interface SocialLink {
   id: string;
   username: string;
+  platform: string;
   url: string;
   isVisible: boolean;
 }
@@ -171,17 +172,7 @@ const pathname = usePathname();
       >
         {/* Cover Image */}
         <div className="h-28 w-full bg-gray-100">
-          {profile.coverImage ? (
-            <img
-              src={profile.coverImage}
-              alt="Cover"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-sm text-gray-400">
-              No Cover
-            </div>
-          )}
+          
         </div>
 
         {/* Avatar */}
@@ -210,7 +201,7 @@ const pathname = usePathname();
               color: primary,
             }}
           >
-            {profile.displayName || "Name"}
+            {profile.displayName || "Display Name"}
           </h1>
           {profile.location && (
             <div className="flex items-center gap-1 mt-1">
@@ -287,10 +278,12 @@ const pathname = usePathname();
                 Connect
               </h3>
               <div className="grid grid-cols-2 gap-2">
-                {profile.socialLinks
-                  .filter((link) => link.isVisible)
-                  .map((link) => {
-                    const icon = socialIconMap[link.id.toLowerCase()] || <Globe size={14} />;
+                 {profile.socialLinks
+                              .filter(link => link.isVisible)
+                              .map(link => {
+                                // normalize key: lowercase and trim
+                                const platformKey = (link.platform || link.id || "").trim().toLowerCase();
+                                const icon = socialIconMap[platformKey] || <Globe size={14} />;
                     return (
                       <a
                         key={link.id}
@@ -328,7 +321,7 @@ const pathname = usePathname();
             <Share2 className="w-5 h-5 mb-1" />
             Share
           </button>
-          <button
+          {/* <button
             className={`flex flex-col items-center text-xs transition ${
               liked ? "text-red-500" : "text-gray-600 hover:text-gray-800"
             }`}
@@ -336,11 +329,8 @@ const pathname = usePathname();
           >
             <Heart className={`w-5 h-5 mb-1 ${liked ? "fill-red-500" : ""}`} />
             Like
-          </button>
-          <button className="flex flex-col items-center text-xs text-gray-600 hover:text-gray-800 transition">
-            <Download className="w-5 h-5 mb-1" />
-            Save
-          </button>
+          </button> */}
+        
         </div>
       </div>
 

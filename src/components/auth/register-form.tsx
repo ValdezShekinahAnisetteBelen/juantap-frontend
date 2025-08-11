@@ -11,6 +11,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { TermsModal } from "./TermsModal" 
 import { register } from "@/lib/api/auth"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+
 
 interface RegisterFormData {
   firstName: string
@@ -80,7 +82,9 @@ export function RegisterForm() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const router = useRouter()
+
+const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault()
 
   if (!validateForm()) return
@@ -102,10 +106,13 @@ export function RegisterForm() {
 
     toast("Registration successful", {
       description: `Welcome, ${formData.firstName}!`,
+      type: "success", // green bg toast
     })
+
+    router.push("/login")
   } catch (error: any) {
     if (error.response?.status === 422) {
-      const backendErrors = error.response.data.errors
+      const backendErrors = error.response.data.errors || {}
       setErrors((prev) => ({
         ...prev,
         email: backendErrors.email?.[0],
@@ -116,14 +123,13 @@ export function RegisterForm() {
 
       toast("Something went wrong", {
         description: "Registration failed. Please try again.",
-        className: "bg-red-500 text-white",
+        type: "error", // red bg toast
       })
     }
   } finally {
     setIsLoading(false)
   }
 }
-
 
   const handleInputChange = (field: keyof RegisterFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = field === "agreeToTerms" ? e.target.checked : e.target.value

@@ -10,7 +10,8 @@ interface TemplatePageProps {
   };
 }
 
-export default async function TemplatePage({ params }: TemplatePageProps) {
+export default async function TemplatePage(props: TemplatePageProps) {
+  const { params } = await props;
   const template = await getTemplateById(params.templateId);
 
   if (!template) {

@@ -15,6 +15,7 @@ import { usePathname } from "next/navigation";
 interface SocialLink {
   id: string;
   username: string;
+  platform: string;
   url: string;
   isVisible: boolean;
 }
@@ -200,7 +201,7 @@ const pathname = usePathname();
 
           {/* Name & Bio */}
           <h1 className="mt-4 text-lg font-semibold text-gray-900">
-            {profile.displayName || "Name"}
+            {profile.displayName || "Display Name"}
           </h1>
           {profile.location && (
             <div className="flex items-center gap-1 mt-1">
@@ -277,24 +278,27 @@ const pathname = usePathname();
                 Connect with me
               </h3>
               <div className="grid grid-cols-2 gap-2">
-                {profile.socialLinks
-                  .filter((link) => link.isVisible)
-                  .map((link) => {
-                    const icon = socialIconMap[link.id.toLowerCase()] || <Globe size={14} />;
-                    return (
-                      <a
-                        key={link.id}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-2 text-xs rounded-lg hover:opacity-90 transition text-white"
-                        style={{ backgroundColor: secondary }}
-                      >
-                        {icon}
-                        {link.username}
-                      </a>
-                    );
-                  })}
+            {profile.socialLinks
+              .filter(link => link.isVisible)
+              .map(link => {
+                // normalize key: lowercase and trim
+                const platformKey = (link.platform || link.id || "").trim().toLowerCase();
+                const icon = socialIconMap[platformKey] || <Globe size={14} />;
+
+                   return (
+                    <a
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-2 text-xs rounded-lg hover:opacity-90 transition text-white"
+                      style={{ backgroundColor: secondary }}
+                    >
+                      {icon}
+                      {link.username}
+                    </a>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -319,19 +323,7 @@ const pathname = usePathname();
             <Share2 className="w-5 h-5 mb-1" style={{ color: secondary }} />
             Share
           </button>
-          <button
-            className={`flex flex-col items-center text-xs transition ${
-              liked ? "text-red-500" : "text-gray-600 hover:text-gray-800"
-            }`}
-            onClick={() => setLiked(!liked)}
-          >
-            <Heart className={`w-5 h-5 mb-1 ${liked ? "fill-red-500" : ""}`} />
-            Like
-          </button>
-          <button className="flex flex-col items-center text-xs text-gray-600 hover:text-gray-800 transition">
-            <Download className="w-5 h-5 mb-1" style={{ color: secondary }} />
-            Save
-          </button>
+        
         </div>
       </div>
 

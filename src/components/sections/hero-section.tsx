@@ -1,10 +1,42 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Zap } from "lucide-react"
 import { ProfilePreview } from "@/components/blocks/profile-preview"
-import Link from "next/link"
 
 export function HeroSection() {
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (!token) return
+
+    const fetchUser = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        })
+
+        if (res.ok) {
+          const userData = await res.json()
+          setUser(userData)
+        } else {
+          console.error("Failed to fetch user")
+        }
+      } catch (err) {
+        console.error("Error:", err)
+      }
+    }
+
+    fetchUser()
+  }, [])
+
   return (
     <section className="py-20 px-4">
       <div className="container mx-auto text-center max-w-4xl">
@@ -25,7 +57,7 @@ export function HeroSection() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Link href="/register">
+          <Link href="/dashboard/edit-profile">
             <Button
               size="lg"
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8"
@@ -34,9 +66,10 @@ export function HeroSection() {
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </Link>
-          <Link href="/profile/johndoe">
+
+          <Link href={`/profile/${user?.username || "me"}`}>
             <Button variant="outline" size="lg" className="text-lg px-8 bg-transparent">
-              View Demo Profile
+              View Public Profile
             </Button>
           </Link>
         </div>

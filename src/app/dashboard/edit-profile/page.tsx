@@ -11,6 +11,8 @@ import { Header } from "@/components/layout/header"
 import { Save, User, Globe, MapPin, Phone, Mail, Upload, Plus, Trash2, Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import Link from "next/link"
 import { useEffect, useState, useRef } from "react"
+import { toast } from "sonner"
+import axios from "axios";
 
 export default function EditProfilePage() {
   const [profile, setProfile] = useState<any>({
@@ -30,6 +32,7 @@ const [socialLinks, setSocialLinks] = useState([
 ])
 
 const avatarInputRef = useRef<HTMLInputElement>(null)
+
 const handleSave = async () => {
   const token = localStorage.getItem("token")
   if (!token) return
@@ -47,17 +50,15 @@ const handleSave = async () => {
   formData.append("website", profile.website || "")
   formData.append("location", profile.location || "")
 
-  // ✅ Correctly handle social links here
   socialLinks.forEach((link, index) => {
     if (link.id !== null && link.id !== undefined) {
-  formData.append(`social_links[${index}][id]`, String(link.id));
-}
-
-    formData.append(`social_links[${index}][platform]`, link.platform);
-    formData.append(`social_links[${index}][url]`, link.url);
-    formData.append(`social_links[${index}][display_name]`, link.display_name || "");
-    formData.append(`social_links[${index}][is_visible]`, link.is_visible ? "1" : "0");
-  });
+      formData.append(`social_links[${index}][id]`, String(link.id))
+    }
+    formData.append(`social_links[${index}][platform]`, link.platform)
+    formData.append(`social_links[${index}][url]`, link.url)
+    formData.append(`social_links[${index}][display_name]`, link.display_name || "")
+    formData.append(`social_links[${index}][is_visible]`, link.is_visible ? "1" : "0")
+  })
 
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profile`, {
@@ -71,15 +72,17 @@ const handleSave = async () => {
     if (res.ok) {
       const data = await res.json()
       setProfile((prev: any) => ({ ...prev, ...data }))
-      alert("Profile saved!")
+      toast.success("Profile saved!")     // <-- success toast here
     } else {
       const err = await res.json()
-      alert("Error: " + JSON.stringify(err))
+      toast.error("Error: " + JSON.stringify(err))   // <-- error toast here
     }
   } catch (err) {
     console.error("Failed to save profile", err)
+    toast.error("Failed to save profile. Please try again.")   // <-- error toast here
   }
 }
+
 
 useEffect(() => {
   const fetchProfile = async () => {
@@ -431,30 +434,22 @@ if (!profile) {
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={link.is_visible}
-                      onChange={() => {
-                        const updated = [...socialLinks]
-                        updated[index].is_visible = !updated[index].is_visible
-                        setSocialLinks(updated)
-                      }}
-                    />
-                    <span className="text-sm">Visible</span>
-                  </div>
+                 <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={link.is_visible}
+                  onChange={() => {
+                    const updated = [...socialLinks]
+                    updated[index].is_visible = !updated[index].is_visible
+                    setSocialLinks(updated)
+                    toast("Please save changes to update visibility.")
+                  }}
+                />
+                <span className="text-sm">Visible</span>
+              </div>
+            
 
-                  <Button
-                    size="icon"
-                    variant="ghost"    
-                    onClick={() => {
-                      const updated = [...socialLinks]
-                      updated.splice(index, 1)
-                      setSocialLinks(updated)
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
+
                 </div>
               </div>
             ))}

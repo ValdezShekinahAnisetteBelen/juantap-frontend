@@ -14,6 +14,7 @@ import { QRCodeSVG } from "qrcode.react";
 interface SocialLink {
   id: string;
   username: string;
+  platform: string; 
   url: string;
   isVisible: boolean;
 }
@@ -177,11 +178,7 @@ export function MinimalClean() {
               <User size={32} className="text-gray-500" />
             )}
           </div>
-          <span className="absolute top-20 right-[40%] bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
-            Active
-          </span>
-          <h1 className="mt-4 text-xl font-bold">{profile.displayName}</h1>
-          {profile.bio && <p className="text-sm text-gray-600 text-center mt-1">{profile.bio}</p>}
+          <h1 className="mt-4 text-xl font-bold">{profile.displayName || "Display Name"}</h1>
           <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 mt-2 justify-center">
             {profile.location && (
               <span className="flex items-center gap-1">
@@ -194,6 +191,8 @@ export function MinimalClean() {
               </a>
             )}
           </div>
+          {profile.bio && <p className="text-sm text-gray-600 text-center mt-1">{profile.bio}</p>}
+          
         </div>
 
         {/* Contact */}
@@ -226,10 +225,12 @@ export function MinimalClean() {
           <div className="px-6 pb-6">
             <h2 className="text-sm font-semibold text-gray-500 uppercase mb-3">Connect with me</h2>
             <div className="grid grid-cols-2 gap-3">
-              {profile.socialLinks
-                .filter(link => link.isVisible)
-                .map(link => {
-                  const icon = socialIconMap[link.id.toLowerCase()] || <Globe size={16} />;
+            {profile.socialLinks
+                         .filter(link => link.isVisible)
+                         .map(link => {
+                           // normalize key: lowercase and trim
+                           const platformKey = (link.platform || link.id || "").trim().toLowerCase();
+                           const icon = socialIconMap[platformKey] || <Globe size={14} />;
                   return (
                     <a
                       key={link.id}
@@ -258,15 +259,7 @@ export function MinimalClean() {
     >
       <Share2 className="w-5 h-5 mb-1" /> Share
     </button>
-          <button
-            className={`flex flex-col items-center text-sm ${liked ? "text-red-500" : ""}`}
-            onClick={() => setLiked(!liked)}
-          >
-            <Heart className={`w-5 h-5 mb-1 ${liked ? "fill-red-500" : ""}`} /> Like
-          </button>
-          <button className="flex flex-col items-center text-sm">
-            <Download className="w-5 h-5 mb-1" /> Save
-          </button>
+         
         </div>
       </div>
 

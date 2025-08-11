@@ -1,16 +1,27 @@
-import { getAllTemplates } from "@/lib/template-data"
-import { TemplateCard } from "@/components/templates/template-card"
-import { TemplateFilters } from "@/components/templates/template-filters"
+"use client";
 
-export async function TemplateGallery() {
-  const templates = await getAllTemplates()
-  const freeTemplates = templates.filter((t) => t.category === "free")
-  const premiumTemplates = templates.filter((t) => t.category === "premium")
+import { useState, useEffect } from "react";
+import { getAllTemplates } from "@/lib/template-data";
+import { TemplateCard } from "@/components/templates/template-card";
+import { TemplateFilters } from "@/components/templates/template-filters";
+
+export function TemplateGallery() {
+  const [templates, setTemplates] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    // Load templates once on mount
+    getAllTemplates().then(setTemplates);
+  }, []);
+
+  const freeTemplates = templates.filter((t) => t.category === "free" && t.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const premiumTemplates = templates.filter((t) => t.category === "premium" && t.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <section className="py-12 px-4 bg-white">
       <div className="container mx-auto">
-        <TemplateFilters />
+        {/* Pass search state and setter to TemplateFilters */}
+        <TemplateFilters searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
 
         {/* Free Templates */}
         <div className="mb-16">
@@ -39,5 +50,5 @@ export async function TemplateGallery() {
         </div>
       </div>
     </section>
-  )
+  );
 }

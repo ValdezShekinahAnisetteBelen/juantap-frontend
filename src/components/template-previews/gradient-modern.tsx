@@ -16,6 +16,7 @@ import { usePathname } from "next/navigation";
 interface SocialLink {
   id: string;
   username: string;
+  platform: string;
   url: string;
   isVisible: boolean;
 }
@@ -154,16 +155,17 @@ const pathname = usePathname();
 
   return (
     <div
- className={`w-full p-4 flex justify-center items-center ${
+  className={`w-full p-4 flex justify-center items-center ${
     pathname.startsWith("/profile/") ? "min-h-screen" : ""
-  }`}      style={{
-        background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
-        color: textColor,
-        fontFamily: fontFamily,
-      }}
-    >
+  }`}
+  style={{
+    background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
+    color: textColor,
+    fontFamily: fontFamily,
+  }}
+>
       {/* Card Container */}
-      <div className="w-full max-w-sm bg-white/10 backdrop-blur-lg shadow-xl rounded-2xl overflow-hidden border border-white/20 transition hover:shadow-2xl hover:-translate-y-1 duration-300">
+      <div className="w-full max-w-xs bg-white/10 backdrop-blur-lg shadow-xl rounded-2xl overflow-hidden border border-white/20 transition hover:shadow-2xl hover:-translate-y-1 duration-300">
         
         {/* Cover Image */}
         <div className="h-28 w-full">
@@ -199,7 +201,7 @@ const pathname = usePathname();
 
           {/* Name & Bio */}
           <h1 className="mt-4 text-lg font-semibold text-white">
-            {profile.displayName || "Name"}
+            {profile.displayName || "Display Name"}
           </h1>
           {profile.location && (
             <div className="flex items-center gap-1 mt-1">
@@ -275,10 +277,13 @@ const pathname = usePathname();
                 Connect
               </h3>
               <div className="flex flex-wrap gap-2">
-                {profile.socialLinks
-                  .filter((link) => link.isVisible)
-                  .map((link) => {
-                    const icon = socialIconMap[link.id.toLowerCase()] || <Globe size={14} />;
+                 {profile.socialLinks
+                              .filter(link => link.isVisible)
+                              .map(link => {
+                                // normalize key: lowercase and trim
+                                const platformKey = (link.platform || link.id || "").trim().toLowerCase();
+                                const icon = socialIconMap[platformKey] || <Globe size={14} />;
+
                     return (
                       <a
                         key={link.id}
@@ -313,19 +318,7 @@ const pathname = usePathname();
             <Share2 className="w-4 h-4 mb-1" />
             Share
           </button>
-          <button
-            className={`flex flex-col items-center text-xs transition ${
-              liked ? "text-red-400" : "text-white/80 hover:text-white"
-            }`}
-            onClick={() => setLiked(!liked)}
-          >
-            <Heart className={`w-4 h-4 mb-1 ${liked ? "fill-red-400" : ""}`} />
-            Like
-          </button>
-          <button className="flex flex-col items-center text-xs text-white/80 hover:text-white transition">
-            <Download className="w-4 h-4 mb-1" />
-            Save
-          </button>
+       
         </div>
       </div>
 

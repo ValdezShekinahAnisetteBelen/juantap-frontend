@@ -1,24 +1,28 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Filter, SlidersHorizontal } from 'lucide-react'
-import { useState } from "react"
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Filter, SlidersHorizontal } from "lucide-react";
+import { useState } from "react";
 
-export function TemplateFilters() {
-  const [activeCategory, setActiveCategory] = useState("all")
-  const [searchQuery, setSearchQuery] = useState("")
+interface TemplateFiltersProps {
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
+}
+
+export function TemplateFilters({ searchQuery, setSearchQuery }: TemplateFiltersProps) {
+  const [activeCategory, setActiveCategory] = useState("all");
 
   const categories = [
     { id: "all", label: "All Templates", count: 10 },
     { id: "free", label: "Free", count: 3 },
     { id: "premium", label: "Premium", count: 7 },
-  ]
+  ];
 
-  const layouts = ["All Layouts", "Minimal", "Modern", "Creative", "Professional", "Artistic"]
-  const sortOptions = ["Popular", "Newest", "Price: Low to High", "Price: High to Low", "Most Downloaded"]
+  const layouts = ["All Layouts", "Minimal", "Modern", "Creative", "Professional", "Artistic"];
+  const sortOptions = ["Popular", "Newest", "Price: Low to High", "Price: High to Low", "Most Downloaded"];
 
   return (
     <div className="mb-12">
@@ -34,6 +38,7 @@ export function TemplateFilters() {
           />
         </div>
         <div className="flex gap-2">
+          {/* Sort and Layout selects (you can lift their states too if needed) */}
           <Select defaultValue="popular">
             <SelectTrigger className="w-48">
               <SlidersHorizontal className="w-4 h-4 mr-2" />
@@ -84,5 +89,5 @@ export function TemplateFilters() {
         ))}
       </div>
     </div>
-  )
+  );
 }
