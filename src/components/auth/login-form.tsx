@@ -61,15 +61,26 @@ export function LoginForm() {
     setIsLoading(true)
     setErrors({})
 
-    try {
-      const response = await login(formData)
+   try {
+    const response = await login(formData)
 
-      if (response.data.access_token) {
-        localStorage.setItem("token", response.data.access_token)
-        toast.success("Login successful!")   // <-- show toast here
+    if (response.data.access_token) {
+      // Store token
+      localStorage.setItem("token", response.data.access_token)
+
+      // Store user info for later use (admin check)
+      localStorage.setItem("user", JSON.stringify(response.data.user))
+
+      toast.success("Login successful!")
+
+      const user = response.data.user
+      if (user?.is_admin === 1 || user?.is_admin === true) {
+        router.push("/admin")
+      } else {
         router.push("/")
       }
-    } catch (error: any) {
+    }
+  } catch (error: any) {
       console.log("Login error response:", error.response)
 
       const message = error.response?.data?.message || error.response?.data?.error || ""
