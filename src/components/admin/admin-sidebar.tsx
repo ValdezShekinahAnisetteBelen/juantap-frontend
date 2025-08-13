@@ -28,10 +28,10 @@ const navigationItems = [
   },
   {
     name: "Payments",
-    href: "/admin/users",
+    href: "/admin/payments",
     icon: Download,
     current: false,
-    badge: "2,847",
+  
   },
   {
     name: "Templates",
