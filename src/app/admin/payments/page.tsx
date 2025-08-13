@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 export default function AdminPaymentsPage() {
   const [payments, setPayments] = useState([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPayments();
@@ -26,55 +27,65 @@ export default function AdminPaymentsPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Payment Management</h1>
-      <div className="overflow-x-auto bg-white rounded-lg shadow">
+      <h1 className="text-3xl font-bold mb-6">Payment Management</h1>
+      <div className="overflow-x-auto bg-white rounded-xl shadow-lg border border-gray-200">
         <table className="min-w-full text-sm text-left">
-          <thead className="bg-gray-100">
+          <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-2">User</th>
-              <th className="px-4 py-2">Template</th>
-              <th className="px-4 py-2">Method</th>
-              <th className="px-4 py-2">Reference</th>
-              <th className="px-4 py-2">Receipt</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Actions</th>
+              <th className="px-5 py-3 font-semibold text-gray-600">User</th>
+              <th className="px-5 py-3 font-semibold text-gray-600">Template</th>
+              <th className="px-5 py-3 font-semibold text-gray-600">Method</th>
+              <th className="px-5 py-3 font-semibold text-gray-600">Reference</th>
+              <th className="px-5 py-3 font-semibold text-gray-600">Receipt</th>
+              <th className="px-5 py-3 font-semibold text-gray-600">Status</th>
+              <th className="px-5 py-3 font-semibold text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody>
             {payments.map((payment: any) => (
-              <tr key={payment.id} className="border-b">
-                <td className="px-4 py-2">{payment.user?.name}</td>
-                <td className="px-4 py-2">{payment.template?.name}</td>
-                <td className="px-4 py-2">{payment.payment_method}</td>
-                <td className="px-4 py-2">{payment.reference_number || "-"}</td>
-                <td className="px-4 py-2">
+              <tr
+                key={payment.id}
+                className="border-t hover:bg-gray-50 transition"
+              >
+                <td className="px-5 py-3">{payment.user?.name}</td>
+                <td className="px-5 py-3">{payment.template?.name}</td>
+                <td className="px-5 py-3 capitalize">{payment.payment_method}</td>
+                <td className="px-5 py-3">{payment.reference_number || "-"}</td>
+                <td className="px-5 py-3">
                   {payment.receipt_img && (
-                    <a
-                      href={`http://localhost:8000/storage/${payment.receipt_img}`}
-                      target="_blank"
-                      className="text-blue-600 underline"
+                    <button
+                      onClick={() =>
+                        setSelectedImage(
+                          `http://localhost:8000/storage/${payment.receipt_img}`
+                        )
+                      }
+                      className="text-blue-600 underline hover:text-blue-800"
                     >
                       View
-                    </a>
+                    </button>
                   )}
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-5 py-3">
                   {payment.is_approved ? (
-                    <span className="text-green-600 font-semibold">Approved</span>
+                    <span className="px-3 py-1 text-xs font-medium text-green-800 bg-green-100 rounded-full">
+                      Approved
+                    </span>
                   ) : (
-                    <span className="text-red-600 font-semibold">Pending</span>
+                    <span className="px-3 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">
+                      Pending
+                    </span>
                   )}
                 </td>
-                <td className="px-4 py-2 space-x-2">
+                <td className="px-5 py-3 space-x-2">
                   <button
                     onClick={() => handleAction(payment.id, "approve")}
-                    className="px-3 py-1 bg-green-500 text-white rounded"
+                    className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded transition"
                   >
                     Approve
                   </button>
                   <button
                     onClick={() => handleAction(payment.id, "disapprove")}
-                    className="px-3 py-1 bg-red-500 text-white rounded"
+                    className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition"
                   >
                     Disapprove
                   </button>
@@ -84,6 +95,31 @@ export default function AdminPaymentsPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div
+            className="bg-white p-4 rounded-lg max-w-3xl max-h-[90vh] overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={selectedImage}
+              alt="Receipt"
+              className="w-full h-auto rounded-lg"
+            />
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="mt-4 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
