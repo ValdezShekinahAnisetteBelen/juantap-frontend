@@ -21,6 +21,7 @@ interface SocialLink {
 }
 
 interface ProfileData {
+   username?: string;
   displayName?: string;
   location?: string;
   bio?: string;
@@ -51,7 +52,13 @@ export function GlassMorphism() {
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
   const imageUrl = process.env.NEXT_PUBLIC_IMAGE_URL || "";
-  const profileUrl = profile?.displayName ? `${imageUrl}/${profile.displayName}` : "";
+  const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+
+const profileUrl = profile?.username
+  ? `${frontendUrl}/${profile.username}`
+  : profile?.displayName
+  ? `${frontendUrl}/${profile.displayName}`
+  : frontendUrl;
 
   const socialIconMap: Record<string, React.ReactNode> = {
     facebook: <Facebook size={14} />,
@@ -84,6 +91,7 @@ const pathname = usePathname();
 
         const data = await res.json();
         setProfile({
+          username: data.username,
           displayName: data.display_name,
           location: data.profile?.location,
           bio: data.profile?.bio,

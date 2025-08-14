@@ -1,5 +1,6 @@
 "use client";
 
+import { Header } from "@/components/layout/header";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { getAllTemplates } from "@/lib/template-data";
@@ -60,6 +61,8 @@ export default function Page() {
   );
 
   return (
+    <>
+     <Header />
     <section className="py-12 px-4 bg-white">
       <div className="container mx-auto">
         {/* Pass search state to TemplateFilters */}
@@ -92,5 +95,6 @@ export default function Page() {
         </div>
       </div>
     </section>
+    </>
   );
 }

@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/blocks/logo"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Edit, Eye, Settings } from "lucide-react"
+import { Edit, Eye, Files } from "lucide-react"
 
 export function Header() {
   const [user, setUser] = useState<any>(null)
@@ -48,6 +49,12 @@ export function Header() {
     fetchUser()
   }, [])
 
+  const getProfileImageUrl = (path?: string) => {
+  if (!path) return "/placeholder.svg?height=40&width=40"
+  if (path.startsWith("http")) return path
+  return `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/${path}`
+}
+
   const handleLogout = () => {
     localStorage.removeItem("token")
     router.push("/login")
@@ -55,7 +62,7 @@ export function Header() {
 
 const isActive = (path: string) => {
   if (path === "/") {
-    // Highlight Home only if we are exactly at "/" with no section hash
+    
     return pathname === "/" && hash === "";
   }
   return pathname.startsWith(path);
@@ -76,22 +83,23 @@ useEffect(() => {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Logo />
 
-        <nav className="hidden md:flex items-center space-x-6">
-          {/* Always show Home */}
-        <Link
-          href="/"
-          className={`transition-colors ${
-            isActive("/") ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-gray-900"
-          }`}
-        >
-          Home
-        </Link>
+     <nav className="hidden md:flex items-center space-x-6">
+        {/* Always show Home unless in /dashboard or /dashboard/edit-profile */}
+        {!["/dashboard", "/dashboard/edit-profile"].includes(pathname) && (
+          <Link
+            href="/"
+            className={`transition-colors ${
+              isActive("/") ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            Home
+          </Link>
+        )}
 
-
-          {/* Show Features & How It Works only on home */}
-          {pathname === "/" && (
-            <>
-             <Link
+        {/* Show Features & How It Works only on home */}
+        {pathname === "/" && (
+          <>
+            <Link
               href="/#features"
               className={`transition-colors ${
                 hash === "#features"
@@ -112,29 +120,28 @@ useEffect(() => {
             >
               How It Works
             </Link>
+          </>
+        )}
 
-            </>
-          )}
-
-          {(pathname === "/" || pathname.startsWith("/templates")) && (
-            <Link
-              href="/templates"
-              className={`transition-colors ${
-                isActive("/templates") ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              Templates
-            </Link>
-          )}
-        </nav>
+        {(pathname === "/" || pathname.startsWith("/templates")) && (
+          <Link
+            href="/templates"
+            className={`transition-colors ${
+              isActive("/templates") ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            Templates
+          </Link>
+        )}
+      </nav>
 
         <div className="flex items-center space-x-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage
-                    src={user?.profile_image || "/placeholder.svg?height=40&width=40"}
+                 <AvatarImage
+                    src={getProfileImageUrl(user?.profile_image)}
                     alt="Profile"
                   />
                   <AvatarFallback>
@@ -166,16 +173,25 @@ useEffect(() => {
                   <span>Edit Profile</span>
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/profile/${user?.username || "me"}`}>
-                  <Eye className="mr-2 h-4 w-4" />
-                  <span>View Public Profile</span>
-                </Link>
-              </DropdownMenuItem>
+           <DropdownMenuItem
+            onClick={(e) => {
+              if (!user?.username) {
+                e.preventDefault()
+                alert("You cannot access your public profile until you set a username. Please update it in Edit Profile.")
+                return
+              }
+              router.push(`/profile/${user.username}`)
+            }}
+            className={!user?.username ? "cursor-not-allowed opacity-50" : ""}
+          >
+            <Eye className="mr-2 h-4 w-4" />
+            <span>View Public Profile</span>
+          </DropdownMenuItem>
+
               <DropdownMenuItem asChild>
                 <Link href="/dashboard">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Dashboard</span>
+                  <Files className="mr-2 h-4 w-4" />
+                  <span>My Templates</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />

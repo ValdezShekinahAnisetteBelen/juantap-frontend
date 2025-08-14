@@ -24,7 +24,7 @@ export default function ProfileNotFound() {
               Go Home
             </Button>
           </Link>
-          <Link href="/register">
+          <Link href="/templates">
             <Button className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
               <Search className="w-4 h-4 mr-2" />
               Create Your Profile

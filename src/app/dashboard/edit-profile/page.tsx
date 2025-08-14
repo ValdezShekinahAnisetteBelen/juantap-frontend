@@ -176,12 +176,13 @@ if (!profile) {
             <Avatar className="w-20 h-20">
              
             <AvatarImage
-                src={
-                   previewURL ||
-                      (profile.profile_image
-                         ? `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/${profile.profile_image}`
-                           : "/placeholder.svg")
-                            }
+              src={
+              previewURL ||
+                (profile.profile_image
+                  ? `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/${profile.profile_image}`
+                  : "/avatar.png")
+            }
+
                           />
               <AvatarFallback className="text-lg">
                 {profile?.name?.[0] ?? ''}
@@ -264,9 +265,11 @@ if (!profile) {
                 <div>
                   <Label htmlFor="username">Username</Label>
                   <div className="flex">
-                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                      juantap.info/
-                    </span>
+                   <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                    {(process.env.NEXT_PUBLIC_FRONTEND_URL?.replace(/^https?:\/\//, "") ?? "localhost:3000") + "/"}
+                  </span>
+
+
                   <Input
                     id="username"
                     value={profile.username || ""}

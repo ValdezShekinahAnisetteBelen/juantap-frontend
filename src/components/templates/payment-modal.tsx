@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Upload, CreditCard, Smartphone, Building, CheckCircle, AlertCircle, X } from "lucide-react";
+import { Upload, CreditCard, Smartphone, Building, CheckCircle, AlertCircle, X, FileText } from "lucide-react";
 import { useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 
@@ -230,11 +230,9 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <img
-                    src={template.thumbnail || "/placeholder.svg"}
-                    alt={template.name}
-                    className="w-16 h-16 rounded-lg object-cover"
-                  />
+                 <div className="w-16 h-16 flex items-center justify-center bg-gray-100 rounded-lg">
+                    <FileText className="w-8 h-8 text-gray-500" />
+                  </div>
                   <div>
                     <h4 className="font-semibold">{template.name}</h4>
                     <p className="text-sm text-gray-600">

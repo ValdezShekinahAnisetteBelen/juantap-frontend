@@ -21,6 +21,7 @@ interface User {
   name: string
   email: string
   username: string
+  profile_image?: string
   profile?: {
     socialLinks?: SocialLink[]
   }
@@ -37,6 +38,13 @@ export function ProfilePreview() {
     github: <Github size={14} />,
     youtube: <Youtube size={14} />,
     tiktok: <Music size={14} />,
+  }
+
+  // ✅ Build full profile image URL
+  const getProfileImageUrl = (path?: string) => {
+    if (!path) return ""
+    if (path.startsWith("http")) return path
+    return `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/${path}`
   }
 
   useEffect(() => {
@@ -60,17 +68,27 @@ export function ProfilePreview() {
   return (
     <div className="relative">
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-auto border">
+        
+        {/* Profile Image or Initials */}
         <div className="flex items-center space-x-3 mb-6">
-          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
-            {user.name.split(" ").map((n) => n[0]).join("").toUpperCase()}
-          </div>
+          {user.profile_image ? (
+            <img
+              src={getProfileImageUrl(user.profile_image)}
+              alt={user.name}
+              className="w-16 h-16 rounded-full object-cover border"
+            />
+          ) : (
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
+              {user.name.split(" ").map((n) => n[0]).join("").toUpperCase()}
+            </div>
+          )}
           <div>
             <h3 className="font-semibold text-lg">{user.name}</h3>
             <p className="text-gray-500">{user.email}</p>
           </div>
         </div>
 
-        {/* Social Media Links (only visible ones) */}
+        {/* Social Media Links */}
         {visibleLinks.length > 0 && (
           <div className="grid grid-cols-3 gap-3 mb-6">
             {visibleLinks.map(link => {
@@ -92,6 +110,7 @@ export function ProfilePreview() {
           </div>
         )}
 
+        {/* QR Code */}
         <div className="flex justify-center">
           <QRCodeCanvas
             value={`https://juantap.info/${user.username}`}

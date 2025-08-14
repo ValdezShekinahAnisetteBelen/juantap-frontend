@@ -12,13 +12,13 @@ export function CTASection() {
           start sharing instantly.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Link href="/register">
+          <Link href="/templates">
             <Button size="lg" variant="secondary" className="text-lg px-8 bg-white text-purple-600 hover:bg-gray-100">
               Get Started Free
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </Link>
-          <Link href="/profile/johndoe">
+          <Link href="/templates/minimal-clean">
             <Button
               size="lg"
               variant="outline"

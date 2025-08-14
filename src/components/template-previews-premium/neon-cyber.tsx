@@ -21,6 +21,7 @@ interface SocialLink {
 }
 
 interface ProfileData {
+  username?: string;
   displayName?: string;
   location?: string;
   bio?: string;
@@ -52,7 +53,13 @@ const pathname = usePathname();
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
   const imageUrl = process.env.NEXT_PUBLIC_IMAGE_URL || "";
-  const profileUrl = profile?.displayName ? `${imageUrl}/${profile.displayName}` : "";
+  const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+
+const profileUrl = profile?.username
+  ? `${frontendUrl}/${profile.username}`
+  : profile?.displayName
+  ? `${frontendUrl}/${profile.displayName}`
+  : frontendUrl;
 
   const socialIconMap: Record<string, React.ReactNode> = {
     facebook: <Facebook size={14} />,
@@ -84,6 +91,7 @@ const pathname = usePathname();
 
         const data = await res.json();
         setProfile({
+          username: data.username,
           displayName: data.display_name,
           location: data.profile?.location,
           bio: data.profile?.bio,
@@ -304,7 +312,7 @@ const pathname = usePathname();
                 </div>
               )}
 
-              {profile?.website && (
+             {profile?.website && (
                 <div 
                   className="flex items-center gap-2 rounded-lg p-2 text-xs border"
                   style={{ 
@@ -314,7 +322,11 @@ const pathname = usePathname();
                 >
                   <Globe size={14} style={{ color: accent }} />
                   <a
-                    href={profile.website}
+                    href={
+                      profile.website.startsWith("http")
+                        ? profile.website
+                        : `https://${profile.website}`
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:underline text-white/90 hover:text-white transition"
@@ -323,6 +335,7 @@ const pathname = usePathname();
                   </a>
                 </div>
               )}
+
             </div>
           </>
         )}
@@ -409,98 +422,118 @@ const pathname = usePathname();
 
       {/* QR Modal */}
       <Dialog open={isQRModalOpen} onOpenChange={setIsQRModalOpen}>
-        <DialogContent 
-          className="sm:max-w-md border-2"
+  <DialogContent
+    className="sm:max-w-md rounded-xl p-6"
+    style={{
+      backgroundColor: "rgba(10,10,10,0.95)",
+      border: `2px solid ${primary}`,
+      boxShadow: `0 0 40px ${primary}80`,
+      fontFamily: font,
+      color: text,
+    }}
+  >
+    <DialogHeader>
+      <DialogTitle
+        className="flex items-center gap-3 font-extrabold tracking-widest text-xl"
+        style={{
+          color: primary,
+          textShadow: `0 0 15px ${primary}`,
+        }}
+      >
+        <QrCode className="w-6 h-6" />
+        QR ACCESS: {profile?.username || profile?.displayName || "User"}
+      </DialogTitle>
+    </DialogHeader>
+
+    <div className="flex flex-col items-center space-y-6 mt-4">
+      <div
+        className="p-6 rounded-2xl border-4"
+        style={{
+          borderColor: primary,
+          boxShadow: `0 0 30px ${primary}80, inset 0 0 40px ${primary}aa`,
+          backgroundColor: "#fff",
+        }}
+      >
+        <QRCodeSVG
+          value={profileUrl}
+          size={220}
+          level="H"
+          fgColor="#000"
+          bgColor="#fff"
+          imageSettings={{
+            src: "/logo.png",
+            height: 40,
+            width: 40,
+            excavate: true,
+          }}
+          className="rounded-xl"
+        />
+      </div>
+
+      <div
+        className="w-full px-4 py-3 rounded-lg border"
+        style={{
+          backgroundColor: "rgba(255,255,255,0.1)",
+          borderColor: `${primary}40`,
+          color: text,
+          fontWeight: "600",
+          userSelect: "all",
+        }}
+      >
+        <p className="mb-2 text-sm uppercase tracking-wider text-white/80">
+          PROFILE URL:
+        </p>
+        <div className="flex items-center justify-between">
+          <code className="text-sm truncate flex-1 mr-3">{profileUrl}</code>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyUrl}
+            style={{
+              color: primary,
+              border: `1px solid ${primary}80`,
+              textShadow: `0 0 10px ${primary}`,
+            }}
+            className="hover:bg-white/20 transition"
+          >
+            {copied ? "COPIED!" : "COPY"}
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex gap-4 w-full">
+        <Button
+          variant="outline"
+          onClick={() => {
+            // Implement download logic here if needed
+          }}
+          className="flex-1 font-bold tracking-wider hover:bg-white/10 transition"
           style={{
-            background: "rgba(0,0,0,0.95)",
-            borderColor: primary,
-            boxShadow: `0 0 30px ${primary}60`,
+            borderColor: secondary,
+            color: secondary,
+            textShadow: `0 0 8px ${secondary}`,
           }}
         >
-          <DialogHeader>
-            <DialogTitle 
-              className="flex items-center gap-2 font-bold tracking-wider"
-              style={{ 
-                color: primary,
-                textShadow: `0 0 10px ${primary}`,
-              }}
-            >
-              <QrCode className="w-5 h-5" /> QR ACCESS: {profile.displayName}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col items-center space-y-4">
-            <div 
-              className="p-4 rounded-xl border-2"
-              style={{
-                borderColor: primary,
-                boxShadow: `0 0 20px ${primary}40`,
-                background: "rgba(255,255,255,0.95)",
-              }}
-            >
-              <QRCodeSVG
-                value={profileUrl}
-                size={200}
-                level="H"
-                fgColor="#000000"
-                bgColor="#ffffff"
-                imageSettings={{
-                  src: "/logo.png",
-                  height: 30,
-                  width: 30,
-                  excavate: true,
-                }}
-              />
-            </div>
-            <div 
-              className="w-full p-3 rounded-lg border"
-              style={{
-                background: "rgba(255,255,255,0.05)",
-                borderColor: `${primary}30`,
-              }}
-            >
-              <p className="text-sm text-white/70 mb-2 font-bold uppercase tracking-wide">PROFILE URL:</p>
-              <div className="flex items-center justify-between">
-                <code className="text-sm text-white/90 truncate flex-1 mr-2">{profileUrl}</code>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={copyUrl}
-                  style={{ 
-                    color: primary,
-                    border: `1px solid ${primary}50`,
-                  }}
-                  className="hover:bg-white/10"
-                >
-                  {copied ? "COPIED!" : "COPY"}
-                </Button>
-              </div>
-            </div>
-            <div className="flex gap-2 w-full">
-              <Button 
-                variant="outline" 
-                className="flex-1 font-bold tracking-wide hover:bg-white/10"
-                style={{ 
-                  borderColor: secondary,
-                  color: secondary,
-                }}
-              >
-                <Download className="w-4 h-4 mr-2" /> DOWNLOAD
-              </Button>
-              <Button 
-                onClick={() => setIsQRModalOpen(false)}
-                className="flex-1 font-bold tracking-wide"
-                style={{ 
-                  background: primary,
-                  color: "#000000",
-                  boxShadow: `0 0 15px ${primary}60`,
-                }}
-              >
-                CLOSE
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          <Download className="w-5 h-5 mr-2" />
+          DOWNLOAD
+        </Button>
+        <Button
+          onClick={() => setIsQRModalOpen(false)}
+          className="flex-1 font-bold tracking-wider"
+          style={{
+            backgroundColor: primary,
+            color: "#000",
+            boxShadow: `0 0 20px ${primary}cc`,
+            textShadow: `0 0 10px #000`,
+          }}
+        >
+          CLOSE
+        </Button>
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
+
     </div>
   );
 }

@@ -10,7 +10,7 @@ const steps = [
   {
     step: 2,
     title: "Customize & Add Links",
-    description: "Choose a template, customize the design, and add all your social media and contact links.",
+    description: "Choose a template and add all your social media and contact links.",
     gradient: "from-purple-600 to-pink-600",
   },
   {

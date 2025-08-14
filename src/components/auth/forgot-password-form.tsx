@@ -40,27 +40,37 @@ export function ForgotPasswordForm() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  e.preventDefault()
 
-    if (!validateForm()) return
+  if (!validateForm()) return
 
-    setIsLoading(true)
-    setErrors({})
+  setIsLoading(true)
+  setErrors({})
 
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({ email: formData.email }),
+    })
 
-      // Here you would handle the actual forgot password logic
-      console.log("Forgot password request:", formData)
+    const data = await res.json()
 
-      setIsSuccess(true)
-    } catch (error) {
-      setErrors({ general: "Failed to send reset email. Please try again." })
-    } finally {
-      setIsLoading(false)
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to send reset link")
     }
+
+    setIsSuccess(true)
+  } catch (error: any) {
+    setErrors({ general: error.message })
+  } finally {
+    setIsLoading(false)
   }
+}
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ email: e.target.value })

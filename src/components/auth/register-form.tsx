@@ -229,29 +229,26 @@ const handleSubmit = async (e: React.FormEvent) => {
               />
              <Label htmlFor="agreeToTerms" className="text-sm text-gray-600 leading-none">
               I agree to the <TermsModal />
-                and{" "}
-                <Link href="/privacy" className="text-blue-600 hover:text-blue-500">
-                  Privacy Policy
-                </Link>
               </Label>
             </div>
             {errors.agreeToTerms && <p className="text-sm text-red-600">{errors.agreeToTerms}</p>}
           </div>
 
           <Button
-            type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
-              </>
-            ) : (
-              "Create account"
-            )}
-          </Button>
+          type="submit"
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          disabled={isLoading || !formData.agreeToTerms} // 🔹 disabled if checkbox not checked
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Creating account...
+            </>
+          ) : (
+            "Create account"
+          )}
+        </Button>
+
         </form>
       </CardContent>
     </Card>

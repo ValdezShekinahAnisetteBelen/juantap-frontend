@@ -20,6 +20,7 @@ interface SocialLink {
 }
 
 interface ProfileData {
+  username?: string;
   displayName?: string;
   location?: string;
   bio?: string;
@@ -49,7 +50,13 @@ export function MinimalClean() {
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
   const imageUrl = process.env.NEXT_PUBLIC_IMAGE_URL || "";
-  const profileUrl = profile?.displayName ? `${imageUrl}/${profile.displayName}` : "";
+  const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+
+const profileUrl = profile?.username
+  ? `${frontendUrl}/${profile.username}`
+  : profile?.displayName
+  ? `${frontendUrl}/${profile.displayName}`
+  : frontendUrl;
 
   const socialIconMap: Record<string, React.ReactNode> = {
     facebook: <Facebook size={16} />,
@@ -81,6 +88,7 @@ export function MinimalClean() {
 
         const data = await res.json();
         setProfile({
+          username: data.username,
           displayName: data.display_name,
           location: data.profile?.location,
           bio: data.profile?.bio,
@@ -264,43 +272,41 @@ export function MinimalClean() {
       </div>
 
       {/* QR Modal */}
-      <Dialog open={isQRModalOpen} onOpenChange={setIsQRModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <QrCode className="w-5 h-5" /> QR Code for {profile.displayName}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col items-center space-y-4">
-            <QRCodeSVG
-              value={profileUrl}
-              size={256}
-              level="H"
-              imageSettings={{
-                src: "/logo.png", // replace with dynamic logo if needed
-                height: 40,
-                width: 40,
-                excavate: true,
-              }}
-            />
-            <div className="w-full p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">Profile URL:</p>
-              <div className="flex items-center justify-between">
-                <code className="text-sm text-gray-800 truncate flex-1 mr-2">{profileUrl}</code>
-                <Button variant="ghost" size="sm" onClick={copyUrl}>
-                  {copied ? "Copied!" : "Copy"}
-                </Button>
-              </div>
-            </div>
-            <div className="flex gap-2 w-full">
-              <Button variant="outline">
-                <Download className="w-4 h-4 mr-2" /> Download
-              </Button>
-              <Button onClick={() => setIsQRModalOpen(false)}>Close</Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+     <Dialog open={isQRModalOpen} onOpenChange={setIsQRModalOpen}>
+             <DialogContent className="sm:max-w-md">
+               <DialogHeader>
+                 <DialogTitle className="flex items-center gap-2">
+                   <QrCode className="w-5 h-5" />
+                   QR Code for {profile.displayName}
+                 </DialogTitle>
+               </DialogHeader>
+               <div className="flex flex-col items-center space-y-4">
+             <QRCodeSVG value={profileUrl} size={256} />
+     
+           <a href={profileUrl} target="_blank" rel="noopener noreferrer">
+             {profileUrl}
+           </a>
+                 <div className="w-full p-3 bg-gray-50 rounded-lg">
+                   <p className="text-sm text-gray-600 mb-2">Profile URL:</p>
+                   <div className="flex items-center justify-between">
+                     <code className="text-sm text-gray-800 truncate flex-1 mr-2">
+                       {profileUrl}
+                     </code>
+                     <Button variant="ghost" size="sm" onClick={copyUrl}>
+                       {copied ? "Copied!" : "Copy"}
+                     </Button>
+                   </div>
+                 </div>
+                 <div className="flex gap-2 w-full">
+                   <Button variant="outline">
+                     <Download className="w-4 h-4 mr-2" />
+                     Download
+                   </Button>
+                   <Button onClick={() => setIsQRModalOpen(false)}>Close</Button>
+                 </div>
+               </div>
+             </DialogContent>
+           </Dialog>
+         </div>
+       );
+     }

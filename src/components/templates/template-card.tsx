@@ -2,8 +2,10 @@ import type { Template } from "@/lib/template-data"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Crown, Download, Eye, Star, Sparkles } from 'lucide-react'
+import { Crown, Download, Eye, Star, Sparkles } from "lucide-react"
 import Link from "next/link"
+import dynamic from "next/dynamic"
+import { useEffect, useState } from "react"
 
 interface TemplateCardProps {
   template: Template
@@ -12,23 +14,37 @@ interface TemplateCardProps {
 export function TemplateCard({ template }: TemplateCardProps) {
   const isPremium = template.category === "premium"
   const hasDiscount = template.originalPrice && template.discount
-  const PreviewComponent = template.previewComponent
+  const [showRealPreview, setShowRealPreview] = useState(false)
+
+  // Lazy load preview component in background after mount
+  const LazyPreview = template.previewComponent
+    ? dynamic(() => Promise.resolve(template.previewComponent), {
+        ssr: false,
+      })
+    : null
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setShowRealPreview(true)
+    }, 800) // small delay to keep initial load light
+    return () => clearTimeout(timeout)
+  }, [])
 
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden">
       <div className="relative">
-        {/* Template Preview */}
+        {/* Template Preview or Thumbnail */}
         <div className="aspect-[3/4] bg-gray-100 overflow-hidden">
-    {PreviewComponent ? (
-      <PreviewComponent />
-    ) : (
-      <img
-        src={template.thumbnail || "/placeholder.svg"}
-        alt={template.name}
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-      />
-    )}
-  </div>
+          {showRealPreview && LazyPreview ? (
+            <LazyPreview />
+          ) : (
+            <img
+              src={template.thumbnail || "/placeholder.svg"}
+              alt={template.name}
+              className="w-full h-full object-cover blur-sm scale-105"
+            />
+          )}
+        </div>
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
