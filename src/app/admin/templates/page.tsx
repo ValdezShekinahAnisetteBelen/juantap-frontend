@@ -1,11 +1,11 @@
-"use client";
+"use client"; // 👈 important, needed for hooks like useRouter
 
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-
+import { useRouter } from "next/navigation";
 interface Template {
   id: number;
   name: string;
@@ -18,6 +18,8 @@ interface Template {
 }
 
 export default function AdminTemplatesPage() {
+   const router = useRouter();
+
   const [templates, setTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
@@ -34,6 +36,7 @@ export default function AdminTemplatesPage() {
     fetchTemplates();
   }, []);
 
+  
   const fetchTemplates = async () => {
     setIsLoading(true);
     try {
@@ -111,7 +114,9 @@ export default function AdminTemplatesPage() {
       toast.error(error.message || "Something went wrong");
     }
   };
-
+  const routeToAdd = () => {
+    router.push("admin/templates/add"); // <-- specify the path
+  };
   return (
     <div className="p-6 space-y-6">
       <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -123,7 +128,7 @@ export default function AdminTemplatesPage() {
           <div className="flex justify-between items-center mb-4">
             <Button
               className="flex items-center gap-2 bg-blue-600 text-white"
-              onClick={() => setIsAdding(true)}
+              onClick={routeToAdd}
             >
               <Plus className="w-4 h-4" /> Add Template
             </Button>
