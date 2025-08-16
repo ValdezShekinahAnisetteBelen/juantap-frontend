@@ -209,9 +209,7 @@ export default function AdminTemplatesPage() {
                     <td className="px-4 py-2">₱{template.price}</td>
                     <td className="px-4 py-2">{template.createdAt}</td>
                     <td className="px-4 py-2 flex gap-2">
-                      <Button size="sm" variant="outline" className="flex items-center gap-1">
-                        <Edit className="w-4 h-4" /> Edit
-                      </Button>
+                    
                       <Button
                         size="sm"
                         variant="destructive"
