@@ -12,7 +12,7 @@ export function TemplatePreviewContent({ template }: TemplatePreviewContentProps
     <div className="space-y-8">
       {/* Template Preview */}
       <Card className="p-0 overflow-hidden">
-       
+        {/* You can add preview image or content here */}
       </Card>
 
       {/* Template Details */}
@@ -27,35 +27,35 @@ export function TemplatePreviewContent({ template }: TemplatePreviewContentProps
             <div className="text-center">
               <div
                 className="w-12 h-12 rounded-lg border-2 border-gray-200 mx-auto mb-2"
-                style={{ backgroundColor: template.colors.primary }}
+                style={{ backgroundColor: template?.colors?.primary ?? "#ddd" }}
               />
               <span className="text-xs text-gray-600">Primary</span>
             </div>
             <div className="text-center">
               <div
                 className="w-12 h-12 rounded-lg border-2 border-gray-200 mx-auto mb-2"
-                style={{ backgroundColor: template.colors.secondary }}
+                style={{ backgroundColor: template?.colors?.secondary ?? "#ddd" }}
               />
               <span className="text-xs text-gray-600">Secondary</span>
             </div>
             <div className="text-center">
               <div
                 className="w-12 h-12 rounded-lg border-2 border-gray-200 mx-auto mb-2"
-                style={{ backgroundColor: template.colors.accent }}
+                style={{ backgroundColor: template?.colors?.accent ?? "#ddd" }}
               />
               <span className="text-xs text-gray-600">Accent</span>
             </div>
             <div className="text-center">
               <div
                 className="w-12 h-12 rounded-lg border-2 border-gray-200 mx-auto mb-2"
-                style={{ backgroundColor: template.colors.background }}
+                style={{ backgroundColor: template?.colors?.background ?? "#ddd" }}
               />
               <span className="text-xs text-gray-600">Background</span>
             </div>
             <div className="text-center">
               <div
                 className="w-12 h-12 rounded-lg border-2 border-gray-200 mx-auto mb-2"
-                style={{ backgroundColor: template.colors.text }}
+                style={{ backgroundColor: template?.colors?.text ?? "#ddd" }}
               />
               <span className="text-xs text-gray-600">Text</span>
             </div>
@@ -71,14 +71,14 @@ export function TemplatePreviewContent({ template }: TemplatePreviewContentProps
           <div className="space-y-3">
             <div>
               <span className="text-sm text-gray-600">Heading Font</span>
-              <p className="text-lg font-semibold" style={{ fontFamily: template.fonts.heading }}>
-                {template.fonts.heading}
+              <p className="text-lg font-semibold" style={{ fontFamily: template?.fonts?.heading ?? "sans-serif" }}>
+                {template?.fonts?.heading ?? "N/A"}
               </p>
             </div>
             <div>
               <span className="text-sm text-gray-600">Body Font</span>
-              <p className="text-base" style={{ fontFamily: template.fonts.body }}>
-                {template.fonts.body}
+              <p className="text-base" style={{ fontFamily: template?.fonts?.body ?? "sans-serif" }}>
+                {template?.fonts?.body ?? "N/A"}
               </p>
             </div>
           </div>
@@ -92,12 +92,16 @@ export function TemplatePreviewContent({ template }: TemplatePreviewContentProps
           <h3 className="text-lg font-semibold">Features Included</h3>
         </div>
         <div className="grid md:grid-cols-2 gap-3">
-          {template.features.map((feature) => (
-            <div key={feature} className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full" />
-              <span className="text-gray-700">{feature}</span>
-            </div>
-          ))}
+          {(template?.features ?? []).length > 0 ? (
+            (template?.features ?? []).map((feature) => (
+              <div key={feature} className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full" />
+                <span className="text-gray-700">{feature}</span>
+              </div>
+            ))
+          ) : (
+            <span className="text-gray-500">No features listed.</span>
+          )}
         </div>
       </Card>
 
@@ -108,11 +112,15 @@ export function TemplatePreviewContent({ template }: TemplatePreviewContentProps
           <h3 className="text-lg font-semibold">Tags</h3>
         </div>
         <div className="flex flex-wrap gap-2">
-          {template.tags.map((tag) => (
-            <Badge key={tag} variant="outline">
-              {tag}
-            </Badge>
-          ))}
+          {(template?.tags ?? []).length > 0 ? (
+            (template?.tags ?? []).map((tag) => (
+              <Badge key={tag} variant="outline">
+                {tag}
+              </Badge>
+            ))
+          ) : (
+            <span className="text-gray-500">No tags available.</span>
+          )}
         </div>
       </Card>
     </div>

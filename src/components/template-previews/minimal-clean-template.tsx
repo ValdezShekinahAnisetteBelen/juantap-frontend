@@ -57,15 +57,15 @@ export function MinimalClean({
   const [copied, setCopied] = useState(false)
 
   const staticProfile = {
-    displayName: "displaylua",
+    displayName: "example_displayname",
     location: "Manila PH",
-    handle: "@addadsadasdas",
+    handle: "@username",
     bio: "this is bui",
-    email: "shekinahvaldez063003@gmail.com",
-    socialLinks: [{ id: "instagram", platform: "instagram", username: "2eub2e", url: "https://instagram.com/2eub2e" }],
+    email: "admin.example@gmail.com",
+    socialLinks: [{ id: "instagram", platform: "instagram", username: "instagram_account", url: "https://instagram.com/2eub2e" }],
   }
 
-  const profileUrl = "https://example.com/displaylua"
+  const profileUrl = "https://example.com/example_displayname"
 
   const socialIconMap: Record<string, React.ReactNode> = {
     facebook: <Facebook size={16} />,

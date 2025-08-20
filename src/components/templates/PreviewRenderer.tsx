@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
 import {
   Mail,
   MapPin,
@@ -14,7 +14,6 @@ import {
   Youtube,
   Music,
   QrCode,
-  User,
   Share2,
   Download,
 } from "lucide-react"
@@ -41,17 +40,18 @@ interface UserData {
   }
 }
 
-interface TemplateCardProps {
+interface TemplatePreviewProps {
   template: any
   user: UserData | null
-  slug: string
 }
 
-export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug }) => {
+export default function PreviewRenderer({ template, user }: TemplatePreviewProps) {
   const [isQRModalOpen, setIsQRModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  const profileUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/template-by-id/${template?.name}`
+  if (!template) return null
+
+  const profileUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/profile/${user?.username}`
 
   const socialIconMap: Record<string, React.ReactNode> = {
     facebook: <Facebook size={16} />,
@@ -63,65 +63,35 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
     tiktok: <Music size={16} />,
   }
 
-  useEffect(() => {
-  const fetchTemplateFull = async () => {
-    try {
-      const token = localStorage.getItem("token") // <- define it here first
-      const res = await fetch(`${API_URL}/templates/${slug}`, {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-          Accept: "application/json",
-        },
-      });
-
-      if (!res.ok) throw new Error("Template not found");
-      const data = await res.json();
-
-      setTemplate({
-        ...data,
-        colors: data.colors ?? defaultColors,
-        fonts: data.fonts ?? defaultFonts,
-        sections: data.sections ?? [],
-      });
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  fetchTemplateFull();
-}, [slug]);
-
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: template?.name ?? "My Profile",
-          text: template?.description ?? "",
-          url: profileUrl,
-        })
-      } catch (err) {
-        console.error("Error sharing:", err)
-      }
-    } else {
-      alert("Sharing is not supported on this browser.")
-    }
-  }
-
   const copyUrl = () => {
     navigator.clipboard.writeText(profileUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // Use logged-in user as author
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: template.name,
+          text: template.description,
+          url: profileUrl,
+        })
+      } catch (err) {
+        console.error(err)
+      }
+    } else {
+      alert("Sharing is not supported on this browser.")
+    }
+  }
+
+  // Use user as author, fallback to anonymous
   const author = user
     ? {
         displayName: user.name,
         avatar: user.profile?.avatar ?? "/default-avatar.png",
         email: user.email ?? null,
         location: user.profile?.location ?? null,
-        handle: null,
         bio: user.profile?.bio ?? null,
         socialLinks: user.profile?.socialLinks ?? [],
       }
@@ -130,7 +100,6 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
         avatar: "/default-avatar.png",
         email: null,
         location: null,
-        handle: null,
         bio: null,
         socialLinks: [],
       }
@@ -140,51 +109,55 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
       <div
         className="w-full max-w-lg shadow-lg rounded-2xl overflow-hidden flex flex-col"
         style={{
-          backgroundColor: template?.colors?.background,
-          fontFamily: template?.fonts?.body,
+          backgroundColor: template.colors?.background || "#fff",
+          fontFamily: template.fonts?.body || "sans-serif",
         }}
       >
         {/* Banner */}
-        <div
-          className="w-full h-32"
-          style={{
-            background: `linear-gradient(135deg, ${template?.colors?.accent}, ${template?.colors?.primary})`,
-          }}
-        />
+        {template.thumbnail_url ? (
+          <img
+            src={template.thumbnail_url}
+            alt={template.name}
+            className="w-full h-48 object-cover mb-6"
+          />
+        ) : (
+          <div
+            className="w-full h-48 mb-6"
+            style={{
+              background: `linear-gradient(135deg, ${template.colors?.accent || "#f3c"}, ${
+                template.colors?.primary || "#36f"
+              })`,
+            }}
+          />
+        )}
 
-        {/* Avatar & Bio */}
-        <div className="relative flex flex-col items-center mt-6 px-6">
-          <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center -mt-12">
+        {/* Avatar & Name */}
+        <div className="flex flex-col items-center px-6 -mt-12">
+          <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden shadow-lg flex items-center justify-center bg-white/20">
             <img
-              src={
-                author.avatar
-                  ? `http://localhost:8000/storage/${author.avatar}`
-                  : "http://localhost:8000/storage/defaults/avatar.png"
-              }
-              alt={author.displayName || "Profile Avatar"}
+              src={author.avatar}
+              alt={author.displayName}
               className="w-full h-full object-cover"
               onError={(e) => {
-                e.currentTarget.src = "http://localhost:8000/storage/defaults/avatar.png";
+                e.currentTarget.src = "/default-avatar.png"
               }}
             />
           </div>
-
           <h1
-            className="mt-4 text-xl font-bold"
+            className="mt-4 text-xl font-bold text-center"
             style={{
-              fontFamily: template?.fonts?.heading,
-              color: template?.colors?.text,
+              fontFamily: template.fonts?.heading,
+              color: template.colors?.text || "#111",
             }}
           >
             {author.displayName}
           </h1>
-
           {author.bio && (
             <p
               className="text-sm text-center mt-1"
               style={{
-                color: template?.colors?.secondary,
-                fontFamily: template?.fonts?.body,
+                color: template.colors?.secondary || "#555",
+                fontFamily: template.fonts?.body,
               }}
             >
               {author.bio}
@@ -192,15 +165,14 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
           )}
         </div>
 
-
         {/* Contact */}
         {author.email && (
           <div className="p-6 space-y-4">
             <h2
               className="text-sm font-semibold uppercase"
               style={{
-                color: template?.colors?.secondary,
-                fontFamily: template?.fonts?.heading,
+                color: template.colors?.secondary,
+                fontFamily: template.fonts?.heading,
               }}
             >
               Contact
@@ -208,18 +180,13 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
             <div
               className="flex justify-between items-center rounded-lg p-3 text-sm"
               style={{
-                backgroundColor: `${template?.colors?.primary}10`,
-                fontFamily: template?.fonts?.body,
+                backgroundColor: `${template.colors?.primary}10`,
               }}
             >
-              <div className="flex items-center gap-2" style={{ color: template?.colors?.text }}>
-                <Mail size={16} style={{ color: template?.colors?.accent }} /> {author.email}
+              <div className="flex items-center gap-2" style={{ color: template.colors?.text }}>
+                <Mail size={16} style={{ color: template.colors?.accent }} /> {author.email}
               </div>
-              <button
-                className="hover:opacity-70"
-                style={{ color: template?.colors?.secondary }}
-                onClick={() => navigator.clipboard.writeText(author.email)}
-              >
+              <button className="hover:opacity-70" onClick={() => navigator.clipboard.writeText(author.email)}>
                 <Copy size={16} />
               </button>
             </div>
@@ -232,15 +199,15 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
             <h2
               className="text-sm font-semibold uppercase mb-3"
               style={{
-                color: template?.colors?.secondary,
-                fontFamily: template?.fonts?.heading,
+                color: template.colors?.secondary,
+                fontFamily: template.fonts?.heading,
               }}
             >
               Connect with me
             </h2>
             <div className="grid grid-cols-2 gap-3">
               {author.socialLinks.map((link: SocialLink) => {
-                const platformKey = link.platform?.toLowerCase()
+                const platformKey = link.platform.toLowerCase()
                 const icon = socialIconMap[platformKey] || <Globe size={14} />
                 return (
                   <a
@@ -250,12 +217,12 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
                     rel="noreferrer"
                     className="flex items-center gap-2 rounded-lg p-2 text-sm hover:opacity-80 transition"
                     style={{
-                      backgroundColor: `${template?.colors?.accent}15`,
-                      color: template?.colors?.text,
-                      fontFamily: template?.fonts?.body,
+                      backgroundColor: `${template.colors?.accent}15`,
+                      color: template.colors?.text,
+                      fontFamily: template.fonts?.body,
                     }}
                   >
-                    <span style={{ color: template?.colors?.accent }}>{icon}</span>
+                    <span style={{ color: template.colors?.accent }}>{icon}</span>
                     <span>{link.username}</span>
                   </a>
                 )
@@ -268,24 +235,24 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
         <div
           className="flex justify-around border-t p-4"
           style={{
-            backgroundColor: `${template?.colors?.primary}08`,
-            borderColor: `${template?.colors?.primary}20`,
-            fontFamily: template?.fonts?.body,
+            backgroundColor: `${template.colors?.primary}08`,
+            borderColor: `${template.colors?.primary}20`,
+            fontFamily: template.fonts?.body,
           }}
         >
           <button
             onClick={() => setIsQRModalOpen(true)}
             className="flex flex-col items-center text-sm hover:opacity-70"
-            style={{ color: template?.colors?.text }}
+            style={{ color: template.colors?.text }}
           >
-            <QrCode className="w-5 h-5 mb-1" style={{ color: template?.colors?.accent }} /> QR Code
+            <QrCode className="w-5 h-5 mb-1" style={{ color: template.colors?.accent }} /> QR Code
           </button>
           <button
             onClick={handleShare}
             className="flex flex-col items-center text-sm hover:opacity-70"
-            style={{ color: template?.colors?.text }}
+            style={{ color: template.colors?.text }}
           >
-            <Share2 className="w-5 h-5 mb-1" style={{ color: template?.colors?.accent }} /> Share
+            <Share2 className="w-5 h-5 mb-1" style={{ color: template.colors?.accent }} /> Share
           </button>
         </div>
       </div>

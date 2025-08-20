@@ -53,35 +53,26 @@ const defaultTemplate: TemplateData = {
   slug: "",
   name: "",
   description: "",
-  preview_url: "/placeholder.svg?height=300&width=200",
-  thumbnail_url: "/placeholder.svg?height=300&width=200",
+  preview_url: "/placeholder.svg",
+  thumbnail_url: "/placeholder.svg",
   is_premium: false,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
-  category: "free",
+  category: "free", // must be "free" or "premium"
   price: 0,
   original_price: 0,
   discount: 0,
-  features: ["Clean Layout", "Social Links", "Contact Info", "QR Code", "Mobile Responsive"],
-  colors: {
-    primary: "#1f2937",
-    secondary: "#6b7280",
-    accent: "#3b82f6",
-    background: "#ffffff",
-    text: "#111827",
-  },
-  fonts: {
-    heading: "Inter",
-    body: "Inter",
-  },
-  layout: "minimal",
-  tags: ["minimal", "clean", "professional"],
+  features: [],
+  colors: { primary: "", secondary: "", accent: "", background: "", text: "" },
+  fonts: { heading: "", body: "" },
+  layout: "minimal", // must be one of the allowed values
+  tags: [],
   is_popular: false,
-  is_new: true,
+  is_new: false,
   downloads: 0,
-  socialStyle: "default",
   connectStyle: "grid",
-}
+  socialStyle: "default",
+};
 
 export default function AddTemplatePage() {
   const [template, setTemplate] = useState<TemplateData>(defaultTemplate)
@@ -163,44 +154,65 @@ export default function AddTemplatePage() {
     }
   }
 
-  const saveTemplate = async () => {
-    if (!template.name || !template.description) {
-    
-      return
-    }
+const saveTemplate = async () => {
+  if (!template.name || !template.description) {
+    alert("Name and description are required!");
+    return;
+  }
 
-    setSaving(true)
-    try {
-      console.log("[v0] Sending template data to Laravel backend:", template)
+  setSaving(true);
 
-      // Send to Laravel backend
-      const response = await axios.post("http://localhost:8080/api/templates", template, {
+  try {
+    const slug = template.slug || generateSlug(template.name);
+    const now = new Date().toISOString();
+
+    // Prepare payload WITHOUT id
+    const payload: any = {
+      ...template,
+      slug,
+      created_at: template.created_at || now,
+      updated_at: now,
+    };
+
+    // ❌ Remove id before sending to backend
+    delete payload.id;
+
+    // Convert arrays/objects to JSON strings (Laravel expects strings)
+    if (payload.features) payload.features = JSON.stringify(payload.features);
+    if (payload.colors) payload.colors = JSON.stringify(payload.colors);
+    if (payload.fonts) payload.fonts = JSON.stringify(payload.fonts);
+    if (payload.tags) payload.tags = JSON.stringify(payload.tags);
+
+    console.log("[v2] Sending template data to Laravel backend:", payload);
+
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/templates/store`,
+      payload,
+      {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-      })
+      }
+    );
 
-      console.log("[v0] Backend response:", response.data)
+    console.log("[v2] Backend response:", response.data);
 
+    // Reset form with valid defaults
+    setTemplate({
+      ...defaultTemplate,
+      created_at: now,
+      updated_at: now,
+    });
 
-
-      // Reset form
-      setTemplate(defaultTemplate)
-    } catch (error) {
-      console.error("[v0] Error saving template:", error)
-
-      // For now, still show the data in console/alert for testing
-      console.log("[v0] Template Form Data (fallback):", template)
-      alert(
-        `Template Data Ready!\nName: ${template.name}\nCategory: ${template.category}\nPrice: $${template.price}\nCheck console for full data.`,
-      )
-
-     
-    } finally {
-      setSaving(false)
-    }
+    alert("Template saved successfully!");
+  } catch (error: any) {
+    console.error("[v2] Error saving template:", error);
+    alert("Failed to save template. Check console for details.");
+  } finally {
+    setSaving(false);
   }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -664,7 +676,7 @@ export default function AddTemplatePage() {
                   </div>
                   {template.category === "premium" && (
                     <div>
-                      <strong>Price:</strong> ${template.price}
+                      <strong>Price:</strong> ₱{template.price}
                     </div>
                   )}
                   <div>

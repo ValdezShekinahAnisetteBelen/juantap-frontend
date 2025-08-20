@@ -11,7 +11,8 @@ interface TemplatePageProps {
 }
 
 export default async function TemplatePage(props: TemplatePageProps) {
-  const { params } = await props;
+  // Await params if needed
+  const params = await props.params; // ✅ fix for Next.js 13+
   const template = await getTemplateById(params.templateId);
 
   if (!template) {

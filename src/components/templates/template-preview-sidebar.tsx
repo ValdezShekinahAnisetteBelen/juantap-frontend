@@ -5,17 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PaymentModal } from "@/components/templates/payment-modal";
-import {
-  Download,
-  Heart,
-  Share2,
-  Crown,
-  CheckCircle,
-} from "lucide-react";
+import { Download, Share2, Crown, CheckCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-
-// Import Sonner toast
 import { toast, Toaster } from "sonner";
 
 interface TemplatePreviewSidebarProps {
@@ -24,11 +16,11 @@ interface TemplatePreviewSidebarProps {
 
 export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // States from backend
   const [savedStatus, setSavedStatus] = useState<
-    "saved" | "bought" | "pending" | "free" | "locked"
+    "saved" | "bought" | "pending" | "free" | null
   >(template.category === "premium" ? "pending" : "free");
   const [usedStatus, setUsedStatus] = useState<"used" | "unused">("unused");
 
@@ -40,96 +32,58 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
     const token = localStorage.getItem("token");
     return {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+      Authorization: token ? `Bearer ${token}` : "",
     };
   };
 
+  // Fetch initial statuses
   useEffect(() => {
     const fetchTemplateStatuses = async () => {
       try {
         const res = await fetch(`${API_URL}/templates/saved`, {
-          headers: authHeaders(),
+          credentials: "include",
+          headers: { Accept: "application/json", ...authHeaders() },
         });
-        if (!res.ok) throw new Error("Failed to fetch templates status");
-        const data: { slug: string; status: string }[] = await res.json();
-        const currentSlug = pathname.split("/").pop();
-        if (!currentSlug) return;
-
-        const found = data.find((t) => t.slug === currentSlug);
-
-        if (found) {
-          setSavedStatus(found.status as typeof savedStatus);
-        } else {
-          setSavedStatus(isPremium ? "locked" : "free");
-        }
+        if (!res.ok) throw new Error("Failed to fetch saved templates");
+        const data = await res.json();
+        const found = data.find((t: any) => t.slug === template.slug);
+        if (found) setSavedStatus(found.status);
       } catch (err) {
         console.error(err);
-        setSavedStatus(isPremium ? "pending" : "free");
+      }
+    };
+
+    const fetchUsedTemplates = async () => {
+      try {
+        const res = await fetch(`${API_URL}/templates/used`, {
+          credentials: "include",
+          headers: { Accept: "application/json", ...authHeaders() },
+        });
+        if (!res.ok) throw new Error("Failed to fetch used templates");
+        const data = await res.json();
+        const isUsed = data.some((t: any) => t.slug === template.slug);
+        setUsedStatus(isUsed ? "used" : "unused");
+      } catch (err) {
+        console.error(err);
       }
     };
 
     fetchTemplateStatuses();
-  }, [pathname, template.id, isPremium, API_URL]);
-
-  useEffect(() => {
-    const fetchUsedTemplates = async () => {
-      try {
-        const res = await fetch(`${API_URL}/templates/used`, {
-          headers: authHeaders(),
-        });
-        if (!res.ok) throw new Error("Failed to fetch used templates");
-        const usedTemplates: { slug: string }[] = await res.json();
-        const currentSlug = pathname.split("/").pop();
-        if (!currentSlug) return;
-
-        if (usedTemplates.some((t) => t.slug === currentSlug)) {
-          setUsedStatus("used");
-        } else {
-          setUsedStatus("unused");
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
     fetchUsedTemplates();
-  }, [pathname, API_URL]);
+  }, [API_URL, template.slug]);
 
-  const isSaved = savedStatus === "saved";
-  const isBought = savedStatus === "bought";
-  const isPending = savedStatus === "pending";
-  const isUsed = usedStatus === "used";
-
-  const handleGetTemplate = async () => {
-    if (isPremium) {
-      if (isBought) {
-        toast.message("You already own this template.");
-      } else if (isPending) {
-        toast.message("Your purchase is still pending approval.");
-      } else {
-        setShowPaymentModal(true);
-      }
-    } else {
-      if (isSaved) {
-        await unsaveTemplate();
-      } else {
-        await saveTemplate();
-      }
-    }
-  };
-
+  // --- Actions ---
   const saveTemplate = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch(`${API_URL}/templates/saved/${template.id}`, {
+      const res = await fetch(`${API_URL}/templates/saved/${template.slug}`, {
         method: "POST",
         headers: authHeaders(),
       });
       if (!res.ok) throw new Error("Failed to save template");
-      toast.success("Template saved to your account!");
+      toast.success("Template saved!");
       setSavedStatus("saved");
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Error saving template");
     } finally {
       setIsSaving(false);
@@ -139,15 +93,14 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
   const unsaveTemplate = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch(`${API_URL}/templates/saved/${template.id}`, {
+      const res = await fetch(`${API_URL}/templates/saved/${template.slug}`, {
         method: "DELETE",
         headers: authHeaders(),
       });
       if (!res.ok) throw new Error("Failed to unsave template");
-      toast.success("Template removed from your saved list.");
+      toast.success("Template removed from saved.");
       setSavedStatus("free");
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Error removing template");
     } finally {
       setIsSaving(false);
@@ -156,40 +109,34 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
 
   const markUsed = async () => {
     try {
-      const res = await fetch(`${API_URL}/templates/used/${template.id}`, {
+      const res = await fetch(`${API_URL}/templates/used/${template.slug}`, {
         method: "POST",
         headers: authHeaders(),
       });
       if (!res.ok) throw new Error("Failed to mark as used");
       toast.success("Template marked as used!");
       setUsedStatus("used");
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Error marking template as used");
     }
   };
 
   const markUnused = async () => {
     try {
-      const res = await fetch(`${API_URL}/templates/used/${template.id}`, {
+      const res = await fetch(`${API_URL}/templates/used/${template.slug}`, {
         method: "DELETE",
         headers: authHeaders(),
       });
       if (!res.ok) throw new Error("Failed to mark as unused");
       toast.success("Template marked as unused.");
       setUsedStatus("unused");
-    } catch (err) {
-      console.error(err);
+    } catch {
       toast.error("Error marking template as unused");
     }
   };
 
   const toggleUsed = () => {
-    if (isUsed) {
-      markUnused();
-    } else {
-      markUsed();
-    }
+    usedStatus === "used" ? markUnused() : markUsed();
   };
 
   const handleShare = async () => {
@@ -206,13 +153,27 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
       }
     } else {
       await navigator.clipboard.writeText(url);
-      toast.success("Template link copied to clipboard!");
+      toast.success("Template link copied!");
+    }
+  };
+
+  // Handle main button click
+  const handleGetTemplate = () => {
+    if (isPremium) {
+      if (savedStatus === "bought") {
+        toast.info("You already own this template.");
+      } else if (savedStatus === "pending") {
+        toast.info("Payment pending approval.");
+      } else {
+        setShowPaymentModal(true);
+      }
+    } else {
+      savedStatus === "saved" ? unsaveTemplate() : saveTemplate();
     }
   };
 
   return (
     <>
-      {/* Sonner Toaster */}
       <Toaster position="top-center" richColors />
 
       <div className="space-y-6">
@@ -227,47 +188,36 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
           <CardContent className="space-y-4">
             <div className="text-center">
               {isPremium ? (
-                <div className="space-y-2">
-                  {template.originalPrice && template.discount ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-3xl font-bold text-gray-900">
-                        ₱{template.price}
-                      </span>
-                      <span className="text-xl text-gray-500 line-through">
-                        ₱{template.originalPrice}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-3xl font-bold text-gray-900">
-                      ₱{template.price}
+                <>
+                  <span className="text-3xl font-bold text-gray-900">
+                    ₱{template.price}
+                  </span>
+                  {template.originalPrice && (
+                    <span className="ml-2 text-xl text-gray-500 line-through">
+                      ₱{template.originalPrice}
                     </span>
                   )}
                   <p className="text-sm text-gray-600">One-time payment</p>
-                </div>
+                </>
               ) : (
-                <div className="space-y-2">
+                <>
                   <span className="text-3xl font-bold text-green-600">Free</span>
                   <p className="text-sm text-gray-600">
-                    {isSaved
-                      ? "Already saved to your account"
+                    {savedStatus === "saved"
+                      ? "Already saved"
                       : "No payment required"}
                   </p>
-                </div>
+                </>
               )}
             </div>
 
-            {/* Save / Purchase Button */}
             <Button
               onClick={handleGetTemplate}
-              disabled={
-                isSaving ||
-                (isPremium && (isBought || isPending)) ||
-                (!isPremium && isSaved)
-              }
+              disabled={isSaving}
               className={`w-full ${
                 isPremium
                   ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                  : isSaved
+                  : savedStatus === "saved"
                   ? "bg-red-600 hover:bg-red-700"
                   : "bg-green-600 hover:bg-green-700"
               }`}
@@ -275,39 +225,37 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
             >
               <Download className="w-4 h-4 mr-2" />
               {isPremium
-                ? isBought
+                ? savedStatus === "bought"
                   ? "Owned"
-                  : isPending
+                  : savedStatus === "pending"
                   ? "Pending Approval"
                   : "Purchase Template"
                 : isSaving
-                ? isSaved
+                ? savedStatus === "saved"
                   ? "Removing..."
                   : "Saving..."
-                : isSaved
+                : savedStatus === "saved"
                 ? "Unsave"
                 : "Save Free"}
             </Button>
 
-            {/* Used/Unused toggle button */}
-            {(isBought || isSaved) && (
+            {/* Used/Unused toggle */}
+            {(savedStatus === "saved" || savedStatus === "bought") && (
               <Button
                 onClick={toggleUsed}
                 className={`w-full mt-2 ${
-                  isUsed ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+                  usedStatus === "used"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-blue-600 hover:bg-blue-700"
                 }`}
                 size="lg"
               >
-                {isUsed ? "Mark as Unused" : "Mark as Used"}
+                {usedStatus === "used" ? "Mark as Unused" : "Mark as Used"}
               </Button>
             )}
 
             <div className="flex gap-2 mt-4">
-              <Button
-                variant="outline"
-                onClick={handleShare}
-                className="flex-1 bg-transparent"
-              >
+              <Button variant="outline" onClick={handleShare} className="flex-1">
                 <Share2 className="w-4 h-4 mr-1" />
                 Share
               </Button>
@@ -315,7 +263,7 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
           </CardContent>
         </Card>
 
-        {/* Template Info */}
+        {/* Info */}
         <Card>
           <CardHeader>
             <CardTitle>Template Information</CardTitle>
@@ -333,32 +281,32 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Downloads</span>
-              <span className="font-medium">{template.downloads.toLocaleString()}</span>
+              <span className="font-medium">
+                {template.downloads?.toLocaleString() ?? "0"}
+              </span>
             </div>
           </CardContent>
         </Card>
 
-        {/* What's Included */}
+        {/* Premium extra info */}
         {isPremium && (
           <Card>
             <CardHeader>
               <CardTitle>What's Included</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {[
-                  "Premium template design",
-                  "Full customization options",
-                  "Mobile responsive design",
-                  "Priority customer support",
-                  "Lifetime updates",
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="text-sm">{item}</span>
-                  </div>
-                ))}
-              </div>
+              {[
+                "Premium design",
+                "Full customization",
+                "Responsive layout",
+                "Priority support",
+                "Lifetime updates",
+              ].map((item, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span className="text-sm">{item}</span>
+                </div>
+              ))}
             </CardContent>
           </Card>
         )}

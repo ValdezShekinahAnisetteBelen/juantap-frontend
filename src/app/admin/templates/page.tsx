@@ -14,6 +14,7 @@ interface Template {
   price: number;
   createdAt: string;
   preview?: string;
+  created_at: string;
   thumbnail?: string;
 }
 
@@ -37,29 +38,31 @@ export default function AdminTemplatesPage() {
   }, []);
 
   
-  const fetchTemplates = async () => {
-    setIsLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Not logged in");
+ const fetchTemplates = async () => {
+  setIsLoading(true);
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Not logged in");
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/templates`, {
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/templates`, {
+      method: "GET", // ✅ should be GET, not POST
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+    });
 
-      if (!res.ok) throw new Error("Failed to fetch templates");
+    if (!res.ok) throw new Error("Failed to fetch templates");
 
-      const data = await res.json();
-      setTemplates(Array.isArray(data) ? data : []);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to fetch templates");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const data = await res.json();
+    setTemplates(Array.isArray(data) ? data : []);
+  } catch (error: any) {
+    toast.error(error.message || "Failed to fetch templates");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   const handleAdd = async () => {
     try {
@@ -115,7 +118,7 @@ export default function AdminTemplatesPage() {
     }
   };
   const routeToAdd = () => {
-    router.push("admin/templates/add"); // <-- specify the path
+    router.push("templates/add"); // <-- specify the path
   };
   return (
     <div className="p-6 space-y-6">
@@ -207,7 +210,7 @@ export default function AdminTemplatesPage() {
                     <td className="px-4 py-2">{template.description}</td>
                     <td className="px-4 py-2 capitalize">{template.category}</td>
                     <td className="px-4 py-2">₱{template.price}</td>
-                    <td className="px-4 py-2">{template.createdAt}</td>
+                    <td className="px-4 py-2">{template.created_at}</td>
                     <td className="px-4 py-2 flex gap-2">
                     
                       <Button
