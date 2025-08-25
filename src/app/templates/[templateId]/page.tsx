@@ -1,48 +1,44 @@
-import { getTemplateById } from "@/lib/template-data";
-import { notFound } from "next/navigation";
-import { TemplatePreviewContent } from "@/components/templates/template-preview-content";
-import { TemplatePreviewHeader } from "@/components/templates/template-preview-header";
-import { TemplatePreviewSidebar } from "@/components/templates/template-preview-sidebar";
+import { getTemplateBySlug, getCurrentUser } from "@/lib/template-data"
+import { notFound } from "next/navigation"
+import { TemplatePreviewContent } from "@/components/templates/template-preview-content"
+import { TemplatePreviewHeader } from "@/components/templates/template-preview-header"
+import { TemplatePreviewSidebar } from "@/components/templates/template-preview-sidebar"
 
 interface TemplatePageProps {
   params: {
-    templateId: string;
-  };
+    templateId: string
+  }
 }
 
-export default async function TemplatePage(props: TemplatePageProps) {
-  // Await params if needed
-  const params = await props.params; // ✅ fix for Next.js 13+
-  const template = await getTemplateById(params.templateId);
+export default async function TemplatePage({ params }: TemplatePageProps) {
+  const template = await getTemplateBySlug(params.templateId)
+  if (!template) notFound()
 
-  if (!template) {
-    notFound();
-  }
+  // 🔑 fetch user (requires valid token)
+  const user = await getCurrentUser()
 
-  const { previewComponent: PreviewComponent, ...templateData } = template;
+  const { previewComponent: PreviewComponent, ...templateData } = template
 
   return (
     <>
-      {/* Header full width */}
       <header className="w-full bg-gray-50 px-6 py-4 shadow-sm">
-        <TemplatePreviewHeader template={templateData} />
+        <TemplatePreviewHeader template={templateData} user={user} />
       </header>
 
-      {/* Main content with sidebars */}
       <div className="min-h-screen bg-gray-50 flex gap-6 p-6">
         <main className="flex-1">
           <div className="my-6">
-            <PreviewComponent />
+            {PreviewComponent && <PreviewComponent />}
           </div>
           <div className="container mx-auto px-4 py-8">
-            <TemplatePreviewContent template={templateData} />
+            <TemplatePreviewContent template={templateData} user={user} />
           </div>
         </main>
 
         <div className="hidden lg:block w-1/3">
-          <TemplatePreviewSidebar template={templateData} />
+          <TemplatePreviewSidebar template={templateData} user={user} />
         </div>
       </div>
     </>
-  );
+  )
 }

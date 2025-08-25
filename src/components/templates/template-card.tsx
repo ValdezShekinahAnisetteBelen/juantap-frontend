@@ -1,32 +1,27 @@
-import type { Template } from "@/lib/template-data"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Crown, Download, Eye, Star, Sparkles } from "lucide-react"
 import Link from "next/link"
-import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
+import { PreviewRenderer } from "@/components/templates/PreviewRenderer"
+import type { Template, User } from "@/types/template"
+
 
 interface TemplateCardProps {
   template: Template
+  user?: User
 }
 
-export function TemplateCard({ template }: TemplateCardProps) {
+export function TemplateCard({ template, user }: TemplateCardProps) {
   const isPremium = template.category === "premium"
-  const hasDiscount = template.originalPrice && template.discount
+  const hasDiscount = !!(template.originalPrice && template.discount)
   const [showRealPreview, setShowRealPreview] = useState(false)
-
-  // Lazy load preview component in background after mount
-  const LazyPreview = template.previewComponent
-    ? dynamic(() => Promise.resolve(template.previewComponent), {
-        ssr: false,
-      })
-    : null
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       setShowRealPreview(true)
-    }, 800) // small delay to keep initial load light
+    }, 800)
     return () => clearTimeout(timeout)
   }, [])
 
@@ -35,8 +30,8 @@ export function TemplateCard({ template }: TemplateCardProps) {
       <div className="relative">
         {/* Template Preview or Thumbnail */}
         <div className="aspect-[3/4] bg-gray-100 overflow-hidden">
-          {showRealPreview && LazyPreview ? (
-            <LazyPreview />
+          {showRealPreview ? (
+            <PreviewRenderer template={template} user={user} slug={template.slug} />
           ) : (
             <img
               src={template.thumbnail || "/placeholder.svg"}
@@ -77,17 +72,18 @@ export function TemplateCard({ template }: TemplateCardProps) {
           </div>
         )}
 
-        {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <div className="flex gap-2">
-            <Link href={`/templates/${template.id}`}>
-              <Button size="sm" variant="secondary">
-                <Eye className="w-4 h-4 mr-1" />
-                Preview
-              </Button>
-            </Link>
-          </div>
-        </div>
+          {/* Hover Overlay */}
+    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+      <div className="flex gap-2">
+        <Link href={`/template-by-id/${template.slug}`}>
+          <Button size="sm" variant="secondary">
+            <Eye className="w-4 h-4 mr-1" />
+            Preview
+          </Button>
+        </Link>
+      </div>
+    </div>
+
       </div>
 
       <CardContent className="p-4">
@@ -97,14 +93,14 @@ export function TemplateCard({ template }: TemplateCardProps) {
           </h3>
           <div className="flex items-center gap-1 text-sm text-gray-500">
             <Download className="w-3 h-3" />
-            {template.downloads.toLocaleString()}
+            {template.downloads?.toLocaleString() ?? 0}
           </div>
         </div>
 
         <p className="text-sm text-gray-600 mb-3 line-clamp-2">{template.description}</p>
 
         <div className="flex flex-wrap gap-1 mb-3">
-          {template.tags.slice(0, 3).map((tag) => (
+          {template.tags?.slice(0, 3).map((tag) => (
             <Badge key={tag} variant="outline" className="text-xs">
               {tag}
             </Badge>
@@ -112,32 +108,46 @@ export function TemplateCard({ template }: TemplateCardProps) {
         </div>
       </CardContent>
 
-      <CardFooter className="p-4 pt-0">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-2">
-            {isPremium ? (
-              <div className="flex items-center gap-2">
-                {hasDiscount ? (
-                  <>
-                    <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
-                    <span className="text-sm text-gray-500 line-through">₱{template.originalPrice}</span>
-                  </>
-                ) : (
-                  <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
-                )}
-              </div>
-            ) : (
-              <span className="text-lg font-bold text-green-600">Free</span>
-            )}
-          </div>
+     <CardFooter className="p-4 pt-0">
+      <div className="flex items-center justify-between w-full">
+        {/* 👤 Author Info */}
+        <div className="flex items-center gap-2">
+          {template.user?.avatar_url && (
+            <img
+              src={template.user.avatar_url}
+              alt={template.user.name}
+              className="w-6 h-6 rounded-full object-cover"
+            />
+          )}
+          <span className="text-sm text-gray-700">
+            {template.user?.display_name || template.user?.name || "Unknown"}
+          </span>
+        </div>
 
-          <Link href={`/templates/${template.id}`}>
+        {/* 💰 Price / Button */}
+        <div className="flex items-center gap-2">
+          {isPremium ? (
+            hasDiscount ? (
+              <>
+                <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
+                <span className="text-sm text-gray-500 line-through">₱{template.original_price}</span>
+              </>
+            ) : (
+              <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
+            )
+          ) : (
+            <span className="text-lg font-bold text-green-600">Free</span>
+          )}
+
+          <Link href={`/template-by-id/${template.slug}`}>
             <Button size="sm" className={isPremium ? "bg-gradient-to-r from-purple-600 to-pink-600" : ""}>
               {isPremium ? "Get Premium" : "Use Free"}
             </Button>
           </Link>
         </div>
-      </CardFooter>
+      </div>
+    </CardFooter>
+
     </Card>
   )
 }

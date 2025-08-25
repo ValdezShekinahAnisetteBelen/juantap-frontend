@@ -2,24 +2,13 @@
 
 import React, { useState } from "react"
 import {
-  Mail,
-  MapPin,
-  Globe,
-  Copy,
-  Facebook,
-  Instagram,
-  Twitter,
-  Linkedin,
-  Github,
-  Youtube,
-  Music,
-  QrCode,
-  Share2,
-  Download,
+  Mail, Globe, Copy, Facebook, Instagram, Twitter,
+  Linkedin, Github, Youtube, Music, QrCode, Share2, Download, Send, MessageCircle, MapPin, Phone 
 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { QRCodeSVG } from "qrcode.react"
+import type { Template, User } from "@/types/template"
 
 interface SocialLink {
   id: string
@@ -35,23 +24,42 @@ interface UserData {
   profile?: {
     avatar?: string
     bio?: string
+    phone?: number
+    website?: string
     location?: string
     socialLinks?: SocialLink[]
   }
 }
 
-interface TemplatePreviewProps {
-  template: any
-  user: UserData | null
+interface TemplateData {
+  id: string
+  name: string
+  description?: string
+  colors: {
+    background: string
+    primary: string
+    secondary: string
+    accent: string
+    text: string
+  }
+  fonts: {
+    heading: string
+    body: string
+  }
+  sections?: any[]
 }
 
-export default function PreviewRenderer({ template, user }: TemplatePreviewProps) {
+interface PreviewRendererProps {
+  template: Template
+  user: User | null
+  slug: string
+}
+
+export const PreviewRenderer: React.FC<PreviewRendererProps> = ({ template, user, slug }) => {
   const [isQRModalOpen, setIsQRModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  if (!template) return null
-
-  const profileUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/profile/${user?.username}`
+const profileUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/${user?.username || ''}`
 
   const socialIconMap: Record<string, React.ReactNode> = {
     facebook: <Facebook size={16} />,
@@ -61,6 +69,8 @@ export default function PreviewRenderer({ template, user }: TemplatePreviewProps
     github: <Github size={16} />,
     youtube: <Youtube size={16} />,
     tiktok: <Music size={16} />,
+    telegram: <Send  size={16} />,
+    viber: <MessageCircle  size={16} />,
   }
 
   const copyUrl = () => {
@@ -73,141 +83,161 @@ export default function PreviewRenderer({ template, user }: TemplatePreviewProps
     if (navigator.share) {
       try {
         await navigator.share({
-          title: template.name,
-          text: template.description,
+          title: template?.name ?? "My Profile",
+          text: template?.description ?? "",
           url: profileUrl,
         })
       } catch (err) {
-        console.error(err)
+        console.error("Error sharing:", err)
       }
     } else {
-      alert("Sharing is not supported on this browser.")
+      alert("Sharing not supported.")
     }
   }
 
-  // Use user as author, fallback to anonymous
-  const author = user
-    ? {
-        displayName: user.name,
-        avatar: user.profile?.avatar ?? "/default-avatar.png",
-        email: user.email ?? null,
-        location: user.profile?.location ?? null,
-        bio: user.profile?.bio ?? null,
-        socialLinks: user.profile?.socialLinks ?? [],
-      }
-    : {
-        displayName: "Anonymous",
-        avatar: "/default-avatar.png",
-        email: null,
-        location: null,
-        bio: null,
-        socialLinks: [],
-      }
+const avatarUrl = user?.avatar_url || "/default-avatar.png";
+
 
   return (
     <div className="w-full flex justify-center p-6" style={{ backgroundColor: "#f9fafb" }}>
       <div
         className="w-full max-w-lg shadow-lg rounded-2xl overflow-hidden flex flex-col"
         style={{
-          backgroundColor: template.colors?.background || "#fff",
-          fontFamily: template.fonts?.body || "sans-serif",
+          backgroundColor: template?.colors?.background,
+          fontFamily: template?.fonts?.body,
         }}
       >
         {/* Banner */}
-        {template.thumbnail_url ? (
-          <img
-            src={template.thumbnail_url}
-            alt={template.name}
-            className="w-full h-48 object-cover mb-6"
-          />
-        ) : (
-          <div
-            className="w-full h-48 mb-6"
-            style={{
-              background: `linear-gradient(135deg, ${template.colors?.accent || "#f3c"}, ${
-                template.colors?.primary || "#36f"
-              })`,
-            }}
-          />
-        )}
+        <div
+          className="w-full h-32"
+          style={{
+            background: `linear-gradient(135deg, ${template?.colors?.accent}, ${template?.colors?.primary})`,
+          }}
+        />
 
-        {/* Avatar & Name */}
-        <div className="flex flex-col items-center px-6 -mt-12">
-          <div className="w-24 h-24 rounded-full border-4 border-white overflow-hidden shadow-lg flex items-center justify-center bg-white/20">
-            <img
-              src={author.avatar}
-              alt={author.displayName}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src = "/default-avatar.png"
-              }}
-            />
+        {/* Avatar & Bio */}
+        <div className="relative flex flex-col items-center mt-6 px-6">
+          <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center -mt-12">
+           <img
+                src={avatarUrl}
+                alt={user?.name || "Profile Avatar"}
+                className="w-full h-full object-cover"
+                onError={(e) => { e.currentTarget.src = `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/defaults/avatar.png` }}
+                data-slot="avatar-image"
+              />
           </div>
-          <h1
-            className="mt-4 text-xl font-bold text-center"
-            style={{
-              fontFamily: template.fonts?.heading,
-              color: template.colors?.text || "#111",
-            }}
-          >
-            {author.displayName}
-          </h1>
-          {author.bio && (
+
+        <h1
+        className="mt-4 text-xl font-bold"
+        style={{
+          fontFamily: template?.fonts?.heading,
+          color: template?.colors?.text,
+        }}
+      >
+        {user?.display_name || user?.name || user?.username || "Anonymous"}
+      </h1>
+
+          {user?.profile?.bio && (
             <p
               className="text-sm text-center mt-1"
               style={{
-                color: template.colors?.secondary || "#555",
-                fontFamily: template.fonts?.body,
+                color: template?.colors?.secondary,
+                fontFamily: template?.fonts?.body,
               }}
             >
-              {author.bio}
+              {user.profile.bio}
             </p>
           )}
         </div>
 
-        {/* Contact */}
-        {author.email && (
-          <div className="p-6 space-y-4">
-            <h2
-              className="text-sm font-semibold uppercase"
-              style={{
-                color: template.colors?.secondary,
-                fontFamily: template.fonts?.heading,
-              }}
+     {/* Contact */}
+        <div className="p-6 space-y-4">
+          <h2
+            className="text-sm font-semibold uppercase"
+            style={{
+              color: template?.colors?.secondary,
+              fontFamily: template?.fonts?.heading,
+            }}
+          >
+            Contact
+          </h2>
+
+          {/* Email */}
+          {user?.email && (
+            <div className="flex justify-between items-center rounded-lg p-3 text-sm"
+              style={{ backgroundColor: `${template?.colors?.primary}10`, fontFamily: template?.fonts?.body }}
             >
-              Contact
-            </h2>
-            <div
-              className="flex justify-between items-center rounded-lg p-3 text-sm"
-              style={{
-                backgroundColor: `${template.colors?.primary}10`,
-              }}
-            >
-              <div className="flex items-center gap-2" style={{ color: template.colors?.text }}>
-                <Mail size={16} style={{ color: template.colors?.accent }} /> {author.email}
+              <div className="flex items-center gap-2" style={{ color: template?.colors?.text }}>
+                <Mail size={16} style={{ color: template?.colors?.accent }} /> {user.email}
               </div>
-              <button className="hover:opacity-70" onClick={() => navigator.clipboard.writeText(author.email)}>
+              <button className="hover:opacity-70" style={{ color: template?.colors?.secondary }} onClick={() => navigator.clipboard.writeText(user.email)}>
                 <Copy size={16} />
               </button>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Phone */}
+          {user?.profile?.phone && (
+            <div className="flex justify-between items-center rounded-lg p-3 text-sm"
+              style={{ backgroundColor: `${template?.colors?.primary}10`, fontFamily: template?.fonts?.body }}
+            >
+              <div className="flex items-center gap-2" style={{ color: template?.colors?.text }}>
+                <Phone  size={16} style={{ color: template?.colors?.accent }} /> {user.profile.phone}
+              </div>
+              <button className="hover:opacity-70" style={{ color: template?.colors?.secondary }} onClick={() => navigator.clipboard.writeText(user.profile.phone)}>
+                <Copy size={16} />
+              </button>
+            </div>
+          )}
+
+          {/* Website */}
+          {user?.profile?.website && (
+            <div className="flex justify-between items-center rounded-lg p-3 text-sm"
+              style={{ backgroundColor: `${template?.colors?.primary}10`, fontFamily: template?.fonts?.body }}
+            >
+              <div className="flex items-center gap-2" style={{ color: template?.colors?.text }}>
+                <Globe size={16} style={{ color: template?.colors?.accent }} /> 
+                <a href={user.profile.website} target="_blank" rel="noopener noreferrer" className="underline hover:opacity-70">
+                  {user.profile.website}
+                </a>
+              </div>
+              <button className="hover:opacity-70" style={{ color: template?.colors?.secondary }} onClick={() => navigator.clipboard.writeText(user.profile.website)}>
+                <Copy size={16} />
+              </button>
+            </div>
+          )}
+
+          {/* Location */}
+          {user?.profile?.location && (
+            <div className="flex justify-between items-center rounded-lg p-3 text-sm"
+              style={{ backgroundColor: `${template?.colors?.primary}10`, fontFamily: template?.fonts?.body }}
+            >
+              <div className="flex items-center gap-2" style={{ color: template?.colors?.text }}>
+                <MapPin size={16} style={{ color: template?.colors?.accent }} /> {user.profile.location}
+              </div>
+              <button className="hover:opacity-70" style={{ color: template?.colors?.secondary }} onClick={() => navigator.clipboard.writeText(user.profile.location)}>
+                <Copy size={16} />
+              </button>
+            </div>
+          )}
+        </div>
+
 
         {/* Social Links */}
-        {author.socialLinks?.length > 0 && (
+        {user?.profile?.socialLinks?.length > 0 && (
           <div className="px-6 pb-6">
             <h2
               className="text-sm font-semibold uppercase mb-3"
               style={{
-                color: template.colors?.secondary,
-                fontFamily: template.fonts?.heading,
+                color: template?.colors?.secondary,
+                fontFamily: template?.fonts?.heading,
               }}
             >
               Connect with me
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              {author.socialLinks.map((link: SocialLink) => {
-                const platformKey = link.platform.toLowerCase()
+              {user.profile.socialLinks.map((link: SocialLink) => {
+                const platformKey = link.platform?.toLowerCase()
                 const icon = socialIconMap[platformKey] || <Globe size={14} />
                 return (
                   <a
@@ -217,12 +247,12 @@ export default function PreviewRenderer({ template, user }: TemplatePreviewProps
                     rel="noreferrer"
                     className="flex items-center gap-2 rounded-lg p-2 text-sm hover:opacity-80 transition"
                     style={{
-                      backgroundColor: `${template.colors?.accent}15`,
-                      color: template.colors?.text,
-                      fontFamily: template.fonts?.body,
+                      backgroundColor: `${template?.colors?.accent}15`,
+                      color: template?.colors?.text,
+                      fontFamily: template?.fonts?.body,
                     }}
                   >
-                    <span style={{ color: template.colors?.accent }}>{icon}</span>
+                    <span style={{ color: template?.colors?.accent }}>{icon}</span>
                     <span>{link.username}</span>
                   </a>
                 )
@@ -235,24 +265,28 @@ export default function PreviewRenderer({ template, user }: TemplatePreviewProps
         <div
           className="flex justify-around border-t p-4"
           style={{
-            backgroundColor: `${template.colors?.primary}08`,
-            borderColor: `${template.colors?.primary}20`,
-            fontFamily: template.fonts?.body,
+            backgroundColor: `${template?.colors?.primary}08`,
+            borderColor: `${template?.colors?.primary}20`,
+            fontFamily: template?.fonts?.body,
           }}
         >
           <button
             onClick={() => setIsQRModalOpen(true)}
             className="flex flex-col items-center text-sm hover:opacity-70"
-            style={{ color: template.colors?.text }}
+            style={{ color: template?.colors?.text }}
           >
-            <QrCode className="w-5 h-5 mb-1" style={{ color: template.colors?.accent }} /> QR Code
+            <QrCode className="w-5 h-5 mb-1" style={{ color: template?.colors?.accent }} /> QR Code
           </button>
           <button
-            onClick={handleShare}
+            onClick={() => navigator.share?.({
+              title: template?.name ?? "My Profile",
+              text: template?.description ?? "",
+              url: profileUrl,
+            })}
             className="flex flex-col items-center text-sm hover:opacity-70"
-            style={{ color: template.colors?.text }}
+            style={{ color: template?.colors?.text }}
           >
-            <Share2 className="w-5 h-5 mb-1" style={{ color: template.colors?.accent }} /> Share
+            <Share2 className="w-5 h-5 mb-1" style={{ color: template?.colors?.accent }} /> Share
           </button>
         </div>
       </div>
@@ -262,8 +296,7 @@ export default function PreviewRenderer({ template, user }: TemplatePreviewProps
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <QrCode className="w-5 h-5" />
-              QR Code for {author.displayName}
+              <QrCode className="w-5 h-5" /> QR Code for {user?.name || "Anonymous"}
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center space-y-4">
@@ -282,8 +315,7 @@ export default function PreviewRenderer({ template, user }: TemplatePreviewProps
             </div>
             <div className="flex gap-2 w-full">
               <Button variant="outline">
-                <Download className="w-4 h-4 mr-2" />
-                Download
+                <Download className="w-4 h-4 mr-2" /> Download
               </Button>
               <Button onClick={() => setIsQRModalOpen(false)}>Close</Button>
             </div>

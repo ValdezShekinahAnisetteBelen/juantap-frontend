@@ -6,18 +6,42 @@ import { TemplatePreviewHeader } from "@/components/templates/template-preview-h
 import { TemplatePreviewContent } from "@/components/templates/template-preview-content"
 import { TemplatePreviewSidebar } from "@/components/templates/template-preview-sidebar"
 
+interface SocialLink {
+  id: string
+  platform: string
+  username: string
+  url: string
+  isVisible?: boolean
+}
+
 interface UserData {
   id: number
   name: string
+  firstname?: string
+  lastname?: string
+  display_name?: string
+  username: string
   email: string
   is_admin: boolean
+  avatar_url: string
   profile?: {
     bio?: string
+    phone?: string
+    website?: string
     location?: string
-    avatar?: string
-    socialLinks?: { id: string; platform: string; username: string; url: string }[]
+    template_id?: number
+    background_type?: string
+    background_value?: string
+    font_style?: string
+    font_size?: string
+    button_style?: string
+    accent_color?: string
+    nfc_redirect_url?: string
+    is_published?: boolean
+    socialLinks?: SocialLink[]
   }
 }
+
 
 interface TemplateData {
   name: string
@@ -37,7 +61,6 @@ interface TemplateData {
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL as string
-const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL as string
 
 const defaultColors = {
   primary: "#1f2937",
@@ -101,14 +124,14 @@ export default function TemplatePage({ params }: Props) {
     fetchTemplate()
   }, [slug])
 
-  // Fetch logged-in user
+  // Fetch logged-in user (with profile + socials)
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem("token")
         if (!token) return
 
-        const res = await fetch(`${API_URL}/user`, {
+        const res = await fetch(`${API_URL}/user-profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
             Accept: "application/json",
@@ -119,10 +142,20 @@ export default function TemplatePage({ params }: Props) {
         const data = await res.json()
 
         setUser({
-          ...data,
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          username: data.username, 
+          is_admin: data.is_admin,
+          avatar_url: data.profile_image
+            ? data.profile_image.startsWith("http")
+              ? data.profile_image
+              : `${process.env.NEXT_PUBLIC_IMAGE_URL}/${data.profile_image}` // ✅ fixed double /storage issue
+            : "/default-avatar.png",
           profile: {
-            avatar: data.profile?.avatar ? `${IMAGE_URL}${data.profile.avatar}` : "/default-avatar.png",
             bio: data.profile?.bio ?? "",
+            phone: data.profile?.phone ?? "",
+            website: data.profile?.website ?? "",
             location: data.profile?.location ?? "",
             socialLinks: data.profile?.socialLinks ?? [],
           },
@@ -145,6 +178,7 @@ export default function TemplatePage({ params }: Props) {
 
       <div className="min-h-screen bg-gray-50 flex gap-6 p-6">
         <main className="flex-1">
+          {/* ✅ Pass user (with avatar_url, phone, website, location, socials) */}
           <TemplateCard template={template} user={user} slug={slug} />
 
           <div className="container mx-auto px-4 py-10">
@@ -152,7 +186,7 @@ export default function TemplatePage({ params }: Props) {
           </div>
         </main>
 
-        <aside className="hidden lg:block w-1/3">
+        <aside className="w-80">
           <TemplatePreviewSidebar template={template} />
         </aside>
       </div>

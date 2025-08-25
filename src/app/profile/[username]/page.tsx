@@ -2,7 +2,7 @@
 
 import { useParams, notFound } from "next/navigation"
 import { useEffect, useState } from "react"
-import PreviewRenderer from "@/components/templates/PreviewRenderer"
+import { PreviewRenderer } from "@/components/templates/PreviewRenderer"
 
 interface SocialLink {
   id: string
@@ -16,12 +16,12 @@ interface UserData {
   username: string
   name: string
   email: string
-  profile?: {
-    avatar?: string
-    bio?: string
-    location?: string
-    socialLinks?: SocialLink[]
-  }
+  display_name?: string
+  is_admin?: boolean
+  avatar_url?: string
+  title?: string
+  address?: string
+  social_links?: Record<string, string>
 }
 
 export default function PublicProfilePage() {
@@ -30,70 +30,65 @@ export default function PublicProfilePage() {
   const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        // Fetch used templates
-        const templateRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/profile/${username}/used-templates`,
-          { cache: "no-store" }
-        )
-        const usedTemplates = templateRes.ok ? await templateRes.json() : []
+useEffect(() => {
+  async function fetchData() {
+    const templateRes = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/profile/${username}/used-templates`
+    );
+    const usedTemplates = templateRes.ok ? await templateRes.json() : [];
 
-        // Fetch user profile
-        const userRes = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/profile/${username}`,
-          { cache: "no-store" }
-        )
-        const user = userRes.ok ? await userRes.json() : null
+    const userRes = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/profile/${username}`
+    );
+    const user = userRes.ok ? await userRes.json() : null;
 
-        // Determine templateData
-        let finalTemplate = null
-        if (usedTemplates?.length) {
-          finalTemplate = usedTemplates[0]
-        } else if (user?.template) {
-          finalTemplate = {
-            ...user.template,
-            thumbnail_url: user.template.thumbnail_url
-              ? `${process.env.NEXT_PUBLIC_IMAGE_URL}${user.template.thumbnail_url}`
-              : '/placeholder.svg',
-            sections: user.template.sections ?? [],
-          }
-        }
+    let finalTemplate = null;
+    if (usedTemplates?.length) {
+      const t = usedTemplates[0]; // ✅ kunin yung template id/slug
 
-        setTemplateData(finalTemplate)
+      // 🔥 fetch full template details
+      const fullTemplateRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/templates/${t.slug}`
+      );
+      const fullTemplate = fullTemplateRes.ok ? await fullTemplateRes.json() : null;
 
-        // Set user data
-        if (user) {
-          setUserData({
-            ...user,
-            profile: {
-              avatar: user.profile?.avatar
-                ? `${process.env.NEXT_PUBLIC_IMAGE_URL}${user.profile.avatar}`
-                : "/default-avatar.png",
-              bio: user.profile?.bio ?? "",
-              location: user.profile?.location ?? "",
-              socialLinks: user.profile?.socialLinks ?? [],
-            },
-          })
-        }
-
-        setLoading(false)
-      } catch (err) {
-        console.error(err)
-        setLoading(false)
-      }
+      finalTemplate = {
+        ...fullTemplate,
+        thumbnail_url: fullTemplate?.thumbnail_url
+          ? `${process.env.NEXT_PUBLIC_IMAGE_URL}${fullTemplate.thumbnail_url}`
+          : "/placeholder.svg",
+      };
     }
 
-    fetchData()
-  }, [username])
+    setTemplateData(finalTemplate);
+
+    if (user) {
+      setUserData({
+        ...user,
+       avatar_url: user.avatar_url,
+        title: user.profile?.bio ?? "",
+        address: user.profile?.location ?? "",
+        social_links:
+          user.profile?.socialLinks?.reduce((acc, link) => {
+            acc[link.platform.toLowerCase()] = link.url;
+            return acc;
+          }, {}) ?? {},
+      });
+    }
+
+    setLoading(false);
+  }
+  fetchData();
+}, [username]);
 
   if (loading) return <div>Loading...</div>
   if (!templateData) return notFound()
 
-  return (
-    <main className="flex-1">
+return (
+  <main className="flex-1">
+    {templateData && userData && (
       <PreviewRenderer template={templateData} user={userData} />
-    </main>
-  )
+    )}
+  </main>
+);
 }

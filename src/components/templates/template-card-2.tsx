@@ -14,9 +14,9 @@ import {
   Youtube,
   Music,
   QrCode,
-  User,
   Share2,
   Download,
+  Phone,
 } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -36,6 +36,8 @@ interface UserData {
   profile?: {
     avatar?: string
     bio?: string
+    phone?: string
+    website?: string
     location?: string
     socialLinks?: SocialLink[]
   }
@@ -51,7 +53,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
   const [isQRModalOpen, setIsQRModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  const profileUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/template-by-id/${template?.name}`
+ const profileUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/${user?.username || ''}`
 
   const socialIconMap: Record<string, React.ReactNode> = {
     facebook: <Facebook size={16} />,
@@ -63,34 +65,27 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
     tiktok: <Music size={16} />,
   }
 
-  useEffect(() => {
-  const fetchTemplateFull = async () => {
-    try {
-      const token = localStorage.getItem("token") // <- define it here first
-      const res = await fetch(`${API_URL}/templates/${slug}`, {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : "",
-          Accept: "application/json",
-        },
-      });
-
-      if (!res.ok) throw new Error("Template not found");
-      const data = await res.json();
-
-      setTemplate({
-        ...data,
-        colors: data.colors ?? defaultColors,
-        fonts: data.fonts ?? defaultFonts,
-        sections: data.sections ?? [],
-      });
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  fetchTemplateFull();
-}, [slug]);
-
+  const author = user
+    ? {
+        displayName: user.name,
+        avatar: user.profile?.avatar ?? "/default-avatar.png",
+        email: user.email ?? null,
+        phone: user.profile?.phone ?? null,
+        website: user.profile?.website ?? null,
+        location: user.profile?.location ?? null,
+        bio: user.profile?.bio ?? null,
+        socialLinks: user.profile?.socialLinks ?? [],
+      }
+    : {
+        displayName: "Anonymous",
+        avatar: "/default-avatar.png",
+        email: null,
+        phone: null,
+        website: null,
+        location: null,
+        bio: null,
+        socialLinks: [],
+      }
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -114,27 +109,6 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // Use logged-in user as author
-  const author = user
-    ? {
-        displayName: user.name,
-        avatar: user.profile?.avatar ?? "/default-avatar.png",
-        email: user.email ?? null,
-        location: user.profile?.location ?? null,
-        handle: null,
-        bio: user.profile?.bio ?? null,
-        socialLinks: user.profile?.socialLinks ?? [],
-      }
-    : {
-        displayName: "Anonymous",
-        avatar: "/default-avatar.png",
-        email: null,
-        location: null,
-        handle: null,
-        bio: null,
-        socialLinks: [],
-      }
-
   return (
     <div className="w-full flex justify-center p-6" style={{ backgroundColor: "#f9fafb" }}>
       <div
@@ -155,16 +129,16 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
         {/* Avatar & Bio */}
         <div className="relative flex flex-col items-center mt-6 px-6">
           <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center -mt-12">
-            <img
+           <img
               src={
                 author.avatar
-                  ? `http://localhost:8000/storage/${author.avatar}`
-                  : "http://localhost:8000/storage/defaults/avatar.png"
+                  ? `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/${author.avatar}`
+                  : `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/defaults/avatar.png`
               }
               alt={author.displayName || "Profile Avatar"}
               className="w-full h-full object-cover"
               onError={(e) => {
-                e.currentTarget.src = "http://localhost:8000/storage/defaults/avatar.png";
+                e.currentTarget.src = `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/defaults/avatar.png`
               }}
             />
           </div>
@@ -192,9 +166,8 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
           )}
         </div>
 
-
         {/* Contact */}
-        {author.email && (
+        {(author.email || author.phone || author.website || author.location) && (
           <div className="p-6 space-y-4">
             <h2
               className="text-sm font-semibold uppercase"
@@ -205,24 +178,73 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
             >
               Contact
             </h2>
-            <div
-              className="flex justify-between items-center rounded-lg p-3 text-sm"
-              style={{
-                backgroundColor: `${template?.colors?.primary}10`,
-                fontFamily: template?.fonts?.body,
-              }}
-            >
-              <div className="flex items-center gap-2" style={{ color: template?.colors?.text }}>
-                <Mail size={16} style={{ color: template?.colors?.accent }} /> {author.email}
-              </div>
-              <button
-                className="hover:opacity-70"
-                style={{ color: template?.colors?.secondary }}
-                onClick={() => navigator.clipboard.writeText(author.email)}
+
+            {/* Email */}
+            {author.email && (
+              <div
+                className="flex justify-between items-center rounded-lg p-3 text-sm"
+                style={{
+                  backgroundColor: `${template?.colors?.primary}10`,
+                  fontFamily: template?.fonts?.body,
+                }}
               >
-                <Copy size={16} />
-              </button>
-            </div>
+                <div className="flex items-center gap-2" style={{ color: template?.colors?.text }}>
+                  <Mail size={16} style={{ color: template?.colors?.accent }} /> {author.email}
+                </div>
+                <button
+                  className="hover:opacity-70"
+                  style={{ color: template?.colors?.secondary }}
+                  onClick={() => navigator.clipboard.writeText(author.email!)}
+                >
+                  <Copy size={16} />
+                </button>
+              </div>
+            )}
+
+            {/* Phone */}
+            {author.phone && (
+              <div
+                className="flex items-center gap-2 rounded-lg p-3 text-sm"
+                style={{
+                  backgroundColor: `${template?.colors?.primary}10`,
+                  color: template?.colors?.text,
+                  fontFamily: template?.fonts?.body,
+                }}
+              >
+                <Phone size={16} style={{ color: template?.colors?.accent }} /> {author.phone}
+              </div>
+            )}
+
+            {/* Website */}
+            {author.website && (
+              <a
+                href={author.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-lg p-3 text-sm hover:opacity-80 transition"
+                style={{
+                  backgroundColor: `${template?.colors?.primary}10`,
+                  color: template?.colors?.text,
+                  fontFamily: template?.fonts?.body,
+                }}
+              >
+                <Globe size={16} style={{ color: template?.colors?.accent }} /> {author.website}
+              </a>
+            )}
+
+            {/* Location */}
+            {author.location && (
+              <div
+                className="flex items-center gap-2 rounded-lg p-3 text-sm"
+                style={{
+                  backgroundColor: `${template?.colors?.primary}10`,
+                  color: template?.colors?.text,
+                  fontFamily: template?.fonts?.body,
+                }}
+              >
+                <MapPin size={16} style={{ color: template?.colors?.accent }} /> {author.location}
+              </div>
+            )}
           </div>
         )}
 
