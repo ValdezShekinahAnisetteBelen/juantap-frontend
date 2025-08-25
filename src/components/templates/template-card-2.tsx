@@ -33,6 +33,7 @@ interface UserData {
   id: number
   name: string
   email: string
+  avatar_url:string
   profile?: {
     avatar?: string
     bio?: string
@@ -68,7 +69,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
   const author = user
     ? {
         displayName: user.name,
-        avatar: user.profile?.avatar ?? "/default-avatar.png",
+        avatar: user.avatar_url ?? "/default-avatar.png",
         email: user.email ?? null,
         phone: user.profile?.phone ?? null,
         website: user.profile?.website ?? null,
@@ -129,12 +130,11 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
         {/* Avatar & Bio */}
         <div className="relative flex flex-col items-center mt-6 px-6">
           <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center -mt-12">
+           
            <img
               src={
                 author.avatar
-                  ? `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/${author.avatar}`
-                  : `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/defaults/avatar.png`
-              }
+                              }
               alt={author.displayName || "Profile Avatar"}
               className="w-full h-full object-cover"
               onError={(e) => {
