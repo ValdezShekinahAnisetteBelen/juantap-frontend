@@ -178,7 +178,7 @@ export default function AdminUsersPage() {
                 {/* Public profile link */}
                 {selectedUser.username ? (
                 <a
-                    href={`/profile/${selectedUser.username}`}
+                    href={`/${selectedUser.username}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-4 w-full"

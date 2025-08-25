@@ -180,7 +180,7 @@ useEffect(() => {
                 alert("You cannot access your public profile until you set a username. Please update it in Edit Profile.")
                 return
               }
-              router.push(`/profile/${user.username}`)
+              router.push(`${user.username}`)
             }}
             className={!user?.username ? "cursor-not-allowed opacity-50" : ""}
           >

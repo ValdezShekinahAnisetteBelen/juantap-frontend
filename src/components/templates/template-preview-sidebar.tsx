@@ -21,7 +21,8 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
   // States from backend
   const [savedStatus, setSavedStatus] = useState<
     "saved" | "bought" | "pending" | "free" | null
-  >(template.category === "premium" ? "pending" : "free");
+  >(template.category === "premium" ? null : "free");
+
   const [usedStatus, setUsedStatus] = useState<"used" | "unused">("unused");
 
   const isPremium = template.category === "premium";
@@ -32,17 +33,16 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
     const token = localStorage.getItem("token");
     return {
       "Content-Type": "application/json",
-      Authorization: token ? `Bearer ${token}` : "",
+      Authorization: `Bearer ${token}`,
     };
   };
 
-  // Fetch initial statuses
+  // --- Fetch initial statuses ---
   useEffect(() => {
-    const fetchTemplateStatuses = async () => {
+    const fetchSavedTemplates = async () => {
       try {
-        const res = await fetch(`${API_URL}/templates/saved`, {
-          credentials: "include",
-          headers: { Accept: "application/json", ...authHeaders() },
+        const res = await fetch(`${API_URL}/templates1/saved`, {
+          headers: authHeaders(),
         });
         if (!res.ok) throw new Error("Failed to fetch saved templates");
         const data = await res.json();
@@ -53,11 +53,28 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
       }
     };
 
+   const fetchBoughtedTemplates = async () => {
+  try {
+    const res = await fetch(`${API_URL}/templates1/boughted`, {
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error("Failed to fetch bought templates");
+    const result = await res.json();
+    const bought = result.data || []; // ensure correct array
+    const found = bought.find((t: any) => t.slug === template.slug);
+    if (found) {
+      setSavedStatus(found.status); // backend returns "pending" or "bought"
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+
     const fetchUsedTemplates = async () => {
       try {
-        const res = await fetch(`${API_URL}/templates/used`, {
-          credentials: "include",
-          headers: { Accept: "application/json", ...authHeaders() },
+        const res = await fetch(`${API_URL}/templates1/used`, {
+          headers: authHeaders(),
         });
         if (!res.ok) throw new Error("Failed to fetch used templates");
         const data = await res.json();
@@ -68,7 +85,8 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
       }
     };
 
-    fetchTemplateStatuses();
+    fetchSavedTemplates();
+    fetchBoughtedTemplates();
     fetchUsedTemplates();
   }, [API_URL, template.slug]);
 
@@ -157,7 +175,7 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
     }
   };
 
-  // Handle main button click
+  // --- Main button click ---
   const handleGetTemplate = () => {
     if (isPremium) {
       if (savedStatus === "bought") {
