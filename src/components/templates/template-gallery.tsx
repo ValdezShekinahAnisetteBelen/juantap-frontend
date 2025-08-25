@@ -90,11 +90,8 @@ export function TemplateGallery({ templates }: TemplateGalleryProps) {
           email: data.email,
           username: data.username,
           is_admin: data.is_admin,
-          avatar_url: data.profile_image
-            ? data.profile_image.startsWith("http")
-              ? data.profile_image
-              : `${process.env.NEXT_PUBLIC_IMAGE_URL}/${data.profile_image}`
-            : "/default-avatar.png",
+          avatar_url: data.avatar_url,
+          
           profile: {
             bio: data.profile?.bio ?? "",
             phone: data.profile?.phone ?? "",
