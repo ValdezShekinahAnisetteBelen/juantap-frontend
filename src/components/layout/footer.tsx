@@ -16,7 +16,6 @@ const footerSections: FooterSection[] = [
       { href: "#", label: "Features" },
       { href: "#", label: "Templates" },
       { href: "#", label: "Pricing" },
-      { href: "#", label: "Examples" },
     ],
   },
   {
@@ -24,17 +23,12 @@ const footerSections: FooterSection[] = [
     links: [
       { href: "#", label: "Help Center" },
       { href: "#", label: "Contact Us" },
-      { href: "#", label: "FAQ" },
-      { href: "#", label: "Tutorials" },
     ],
   },
   {
     title: "Company",
     links: [
-      { href: "#", label: "About" },
-      { href: "#", label: "Privacy Policy" },
       { href: "#", label: "Terms of Service" },
-      { href: "#", label: "Blog" },
     ],
   },
 ]
@@ -70,7 +64,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2024 JuanTap. All rights reserved.</p>
+          <p>&copy; 2025 JuanTap. All rights reserved.</p>
         </div>
       </div>
     </footer>

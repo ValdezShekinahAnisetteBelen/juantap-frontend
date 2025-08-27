@@ -30,10 +30,6 @@ export function TemplateHeader() {
             <Sparkles className="w-4 h-4 text-purple-600" />
             <span>Unique Designs</span>
           </div>
-          <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border">
-            <Palette className="w-4 h-4 text-blue-600" />
-            <span>Fully Customizable</span>
-          </div>
         </div>
       </div>
     </section>

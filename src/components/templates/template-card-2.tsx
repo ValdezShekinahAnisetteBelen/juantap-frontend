@@ -2,22 +2,11 @@
 
 import React, { useState, useEffect } from "react"
 import {
-  Mail,
-  MapPin,
-  Globe,
-  Copy,
-  Facebook,
-  Instagram,
-  Twitter,
-  Linkedin,
-  Github,
-  Youtube,
-  Music,
-  QrCode,
-  Share2,
-  Download,
-  Phone,
+  Mail, MapPin, Globe, Copy, Facebook, Instagram, Twitter,
+  Linkedin, Github, Youtube, Music, QrCode, Share2, Download, Phone,
+  User
 } from "lucide-react"
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { QRCodeSVG } from "qrcode.react"
@@ -27,6 +16,7 @@ interface SocialLink {
   platform: string
   username: string
   url: string
+  is_visible?: boolean | number
 }
 
 interface UserData {
@@ -128,43 +118,34 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
         />
 
         {/* Avatar & Bio */}
-        <div className="relative flex flex-col items-center mt-6 px-6">
-          <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center -mt-12">
-           
-           <img
-              src={
-                author.avatar
-                              }
-              alt={author.displayName || "Profile Avatar"}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src = `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/defaults/avatar.png`
-              }}
-            />
-          </div>
+          <div className="relative flex flex-col items-center mt-6 px-6">
+            <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center -mt-12">
+              <User size={64} className="text-gray-400" />
+            </div>
 
-          <h1
-            className="mt-4 text-xl font-bold"
-            style={{
-              fontFamily: template?.fonts?.heading,
-              color: template?.colors?.text,
-            }}
-          >
-            {author.displayName}
-          </h1>
-
-          {author.bio && (
-            <p
-              className="text-sm text-center mt-1"
+            <h1
+              className="mt-4 text-xl font-bold"
               style={{
-                color: template?.colors?.secondary,
-                fontFamily: template?.fonts?.body,
+                fontFamily: template?.fonts?.heading,
+                color: template?.colors?.text,
               }}
             >
-              {author.bio}
-            </p>
-          )}
-        </div>
+              {author.displayName}
+            </h1>
+
+            {author.bio && (
+              <p
+                className="text-sm text-center mt-1"
+                style={{
+                  color: template?.colors?.secondary,
+                  fontFamily: template?.fonts?.body,
+                }}
+              >
+                {author.bio}
+              </p>
+            )}
+          </div>
+
 
         {/* Contact */}
         {(author.email || author.phone || author.website || author.location) && (
@@ -261,7 +242,9 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
               Connect with me
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              {author.socialLinks.map((link: SocialLink) => {
+              {author.socialLinks
+              ?.filter((link: SocialLink) => link.is_visible === true || link.is_visible === 1)
+              .map((link: SocialLink) => {
                 const platformKey = link.platform?.toLowerCase()
                 const icon = socialIconMap[platformKey] || <Globe size={14} />
                 return (

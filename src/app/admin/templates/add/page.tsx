@@ -10,7 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import Link from "next/link"  
+import { ArrowLeft } from "lucide-react" 
 import { Separator } from "@/components/ui/separator"
+import { useRouter } from "next/navigation"
 import { MinimalClean } from "@/components/template-previews/minimal-clean-template"
 
 interface TemplateData {
@@ -79,6 +82,7 @@ export default function AddTemplatePage() {
   const [newFeature, setNewFeature] = useState("")
   const [newTag, setNewTag] = useState("")
   const [saving, setSaving] = useState(false)
+  const router = useRouter()
 
   const updateTemplate = (field: keyof TemplateData, value: any) => {
     setTemplate((prev) => ({
@@ -206,9 +210,10 @@ const saveTemplate = async () => {
     });
 
     alert("Template saved successfully!");
+    router.push("/admin/templates")
   } catch (error: any) {
     console.error("[v2] Error saving template:", error);
-    alert("Failed to save template. Check console for details.");
+    alert("Failed to save template. Slug field is required/Slug has already been taken.");
   } finally {
     setSaving(false);
   }
@@ -218,6 +223,12 @@ const saveTemplate = async () => {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
+           <Link href="/admin/templates">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Templates
+              </Button>
+            </Link>
           <h1 className="text-3xl font-bold text-gray-900">Add New Template</h1>
           <p className="text-gray-600 mt-2">Create and customize a new business card template</p>
         </div>
@@ -260,26 +271,6 @@ const saveTemplate = async () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="preview_url">Preview URL</Label>
-                    <Input
-                      id="preview_url"
-                      value={template.preview_url}
-                      onChange={(e) => updateTemplate("preview_url", e.target.value)}
-                      placeholder="/placeholder.svg?height=300&width=200"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="thumbnail_url">Thumbnail URL</Label>
-                    <Input
-                      id="thumbnail_url"
-                      value={template.thumbnail_url}
-                      onChange={(e) => updateTemplate("thumbnail_url", e.target.value)}
-                      placeholder="/placeholder.svg?height=300&width=200"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
                     <Label htmlFor="category">Category</Label>
                     <Select
                       value={template.category}
@@ -313,50 +304,51 @@ const saveTemplate = async () => {
                     </Select>
                   </div>
                 </div>
-                {template.category === "premium" && (
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="price">Price</Label>
-                      <Input
-                        id="price"
-                        type="number"
-                        value={template.price}
-                        onChange={(e) => updateTemplate("price", Number(e.target.value))}
-                        placeholder="299"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="original_price">Original Price</Label>
-                      <Input
-                        id="original_price"
-                        type="number"
-                        value={template.original_price || ""}
-                        onChange={(e) => updateTemplate("original_price", e.target.value ? Number(e.target.value) : 0)}
-                        placeholder="399"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="discount">Discount %</Label>
-                      <Input
-                        id="discount"
-                        type="number"
-                        value={template.discount || ""}
-                        onChange={(e) => updateTemplate("discount", e.target.value ? Number(e.target.value) : 0)}
-                        placeholder="25"
-                      />
-                    </div>
-                  </div>
-                )}
+            {template.category === "premium" && (
+              <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label htmlFor="downloads">Downloads Count</Label>
+                  <Label htmlFor="price">Price (auto-calculated)</Label>
                   <Input
-                    id="downloads"
+                    id="price"
                     type="number"
-                    value={template.downloads}
-                    onChange={(e) => updateTemplate("downloads", Number(e.target.value))}
+                    value={template.price}
+                    disabled
+                    className="bg-gray-100 cursor-not-allowed"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="original_price">Original Price</Label>
+                  <Input
+                    id="original_price"
+                    type="number"
+                    value={template.original_price || ""}
+                    onChange={(e) => {
+                      const original = Number(e.target.value) || 0
+                      updateTemplate("original_price", original)
+                      const calculated = original - (original * (template.discount || 0) / 100)
+                      updateTemplate("price", calculated)
+                    }}
+                    placeholder="399"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="discount">Discount %</Label>
+                  <Input
+                    id="discount"
+                    type="number"
+                    value={template.discount || ""}
+                    onChange={(e) => {
+                      const discount = Number(e.target.value) || 0
+                      updateTemplate("discount", discount)
+                      const calculated = (template.original_price || 0) - ((template.original_price || 0) * discount / 100)
+                      updateTemplate("price", calculated)
+                    }}
                     placeholder="0"
                   />
                 </div>
+              </div>
+            )}
+
               </CardContent>
             </Card>
 

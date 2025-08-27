@@ -32,33 +32,39 @@ export default function AdminTemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const [showHidden, setShowHidden] = useState(false);
+  
   useEffect(() => {
     fetchTemplates();
   }, []);
 
-  const fetchTemplates = async () => {
-    setIsLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("Not logged in");
+  const fetchTemplates = async (showHidden = false) => {
+  setIsLoading(true);
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Not logged in");
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/templates`, {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/templates?hidden=${showHidden}`,
+      {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      });
+      }
+    );
 
-      if (!res.ok) throw new Error("Failed to fetch templates");
+    if (!res.ok) throw new Error("Failed to fetch templates");
 
-      const data = await res.json();
-      setTemplates(Array.isArray(data) ? data : []);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to fetch templates");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const data = await res.json();
+    setTemplates(Array.isArray(data) ? data : []);
+  } catch (error: any) {
+    toast.error(error.message || "Failed to fetch templates");
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
     const handleEdit = (slug: string) => {
       router.push(`/admin/templates/${slug}/edit`);
@@ -84,6 +90,36 @@ export default function AdminTemplatesPage() {
         </Button>
       </div>
 
+      {/* Toggle Button for Visible / Hidden */}
+      <div className="flex items-center gap-3 mb-6">
+      <Button
+        onClick={() => {
+          setShowHidden(false);
+          fetchTemplates(false);
+        }}
+        className={`${
+          !showHidden
+            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+            : "bg-gray-300 text-gray-600"
+        }`}
+      >
+        Show Visible
+      </Button>
+
+      <Button
+        onClick={() => {
+          setShowHidden(true);
+          fetchTemplates(true);
+        }}
+        className={`${
+          showHidden
+            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+            : "bg-gray-300 text-gray-600"
+        }`}
+      >
+        Show Hidden
+      </Button>
+    </div>
       {isLoading ? (
         <div className="flex justify-center py-10">
           <Loader2 className="h-6 w-6 animate-spin text-gray-500" />

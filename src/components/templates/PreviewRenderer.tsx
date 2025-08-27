@@ -5,10 +5,13 @@ import {
   Mail, Globe, Copy, Facebook, Instagram, Twitter,
   Linkedin, Github, Youtube, Music, QrCode, Share2, Download, Send, MessageCircle, MapPin, Phone 
 } from "lucide-react"
+import { User as UserIcon } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { QRCodeSVG } from "qrcode.react"
 import type { Template, User } from "@/types/template"
+import { toast } from 'sonner'
+
 
 interface SocialLink {
   id: string
@@ -61,6 +64,27 @@ export const PreviewRenderer: React.FC<PreviewRendererProps> = ({ template, user
 
 const profileUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/${user?.username || ''}`
 
+const downloadQR = () => {
+  const svg = document.querySelector<SVGSVGElement>("#qr-code-svg")
+  if (!svg) return
+
+  const svgData = new XMLSerializer().serializeToString(svg)
+  const canvas = document.createElement("canvas")
+  const ctx = canvas.getContext("2d")
+  const img = new Image()
+  img.onload = () => {
+    canvas.width = img.width
+    canvas.height = img.height
+    ctx?.drawImage(img, 0, 0)
+    const link = document.createElement("a")
+    link.download = `${user?.username || "profile"}-qr.jpg`
+    link.href = canvas.toDataURL("image/jpeg")
+    link.click()
+  }
+  img.src = `data:image/svg+xml;base64,${btoa(svgData)}`
+}
+
+
   const socialIconMap: Record<string, React.ReactNode> = {
     facebook: <Facebook size={16} />,
     instagram: <Instagram size={16} />,
@@ -78,6 +102,12 @@ const profileUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/${user?.username || 
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+
+const handleCopy = (text: string) => {
+  navigator.clipboard.writeText(text)
+  toast.success('Copied!')
+}
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -116,39 +146,34 @@ const avatarUrl = user?.avatar_url || "/default-avatar.png";
         />
 
         {/* Avatar & Bio */}
-        <div className="relative flex flex-col items-center mt-6 px-6">
-          <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center -mt-12">
-           <img
-                src={avatarUrl}
-                alt={user?.name || "Profile Avatar"}
-                className="w-full h-full object-cover"
-                onError={(e) => { e.currentTarget.src = `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/defaults/avatar.png` }}
-                data-slot="avatar-image"
-              />
-          </div>
+      <div className="relative flex flex-col items-center mt-6 px-6">
+        <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center -mt-12">
+          <UserIcon size={64} className="text-gray-400" />
+        </div>
 
         <h1
-        className="mt-4 text-xl font-bold"
-        style={{
-          fontFamily: template?.fonts?.heading,
-          color: template?.colors?.text,
-        }}
-      >
-        {user?.display_name || user?.name || user?.username || "Anonymous"}
-      </h1>
+          className="mt-4 text-xl font-bold"
+          style={{
+            fontFamily: template?.fonts?.heading,
+            color: template?.colors?.text,
+          }}
+        >
+          {user?.display_name || user?.name || user?.username || "Anonymous"}
+        </h1>
 
-          {user?.profile?.bio && (
-            <p
-              className="text-sm text-center mt-1"
-              style={{
-                color: template?.colors?.secondary,
-                fontFamily: template?.fonts?.body,
-              }}
-            >
-              {user.profile.bio}
-            </p>
-          )}
-        </div>
+        {user?.profile?.bio && (
+          <p
+            className="text-sm text-center mt-1"
+            style={{
+              color: template?.colors?.secondary,
+              fontFamily: template?.fonts?.body,
+            }}
+          >
+            {user.profile.bio}
+          </p>
+        )}
+      </div>
+
 
      {/* Contact */}
         <div className="p-6 space-y-4">
@@ -170,9 +195,13 @@ const avatarUrl = user?.avatar_url || "/default-avatar.png";
               <div className="flex items-center gap-2" style={{ color: template?.colors?.text }}>
                 <Mail size={16} style={{ color: template?.colors?.accent }} /> {user.email}
               </div>
-              <button className="hover:opacity-70" style={{ color: template?.colors?.secondary }} onClick={() => navigator.clipboard.writeText(user.email)}>
-                <Copy size={16} />
-              </button>
+            <button
+            className="hover:opacity-70"
+            style={{ color: template?.colors?.secondary }}
+            onClick={() => handleCopy(user.email)}
+          >
+            <Copy size={16} />
+          </button>
             </div>
           )}
 
@@ -184,9 +213,11 @@ const avatarUrl = user?.avatar_url || "/default-avatar.png";
               <div className="flex items-center gap-2" style={{ color: template?.colors?.text }}>
                 <Phone  size={16} style={{ color: template?.colors?.accent }} /> {user.profile.phone}
               </div>
-              <button className="hover:opacity-70" style={{ color: template?.colors?.secondary }} onClick={() => navigator.clipboard.writeText(user.profile.phone)}>
-                <Copy size={16} />
-              </button>
+             <button className="hover:opacity-70"
+                  style={{ color: template?.colors?.secondary }}
+                  onClick={() => handleCopy(user.profile.phone)}>
+            <Copy size={16} />
+          </button>
             </div>
           )}
 
@@ -201,9 +232,11 @@ const avatarUrl = user?.avatar_url || "/default-avatar.png";
                   {user.profile.website}
                 </a>
               </div>
-              <button className="hover:opacity-70" style={{ color: template?.colors?.secondary }} onClick={() => navigator.clipboard.writeText(user.profile.website)}>
-                <Copy size={16} />
-              </button>
+         <button className="hover:opacity-70"
+                style={{ color: template?.colors?.secondary }}
+                onClick={() => handleCopy(user.profile.website)}>
+          <Copy size={16} />
+        </button>
             </div>
           )}
 
@@ -215,9 +248,11 @@ const avatarUrl = user?.avatar_url || "/default-avatar.png";
               <div className="flex items-center gap-2" style={{ color: template?.colors?.text }}>
                 <MapPin size={16} style={{ color: template?.colors?.accent }} /> {user.profile.location}
               </div>
-              <button className="hover:opacity-70" style={{ color: template?.colors?.secondary }} onClick={() => navigator.clipboard.writeText(user.profile.location)}>
-                <Copy size={16} />
-              </button>
+          <button className="hover:opacity-70"
+              style={{ color: template?.colors?.secondary }}
+              onClick={() => handleCopy(user.profile.location)}>
+        <Copy size={16} />
+      </button>
             </div>
           )}
         </div>
@@ -236,7 +271,9 @@ const avatarUrl = user?.avatar_url || "/default-avatar.png";
               Connect with me
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              {user.profile.socialLinks.map((link: SocialLink) => {
+            {user?.profile?.socialLinks
+              ?.filter((link: SocialLink) => link.isVisible === true || link.isVisible === 1)
+              .map((link: SocialLink) => {
                 const platformKey = link.platform?.toLowerCase()
                 const icon = socialIconMap[platformKey] || <Globe size={14} />
                 return (
@@ -257,6 +294,7 @@ const avatarUrl = user?.avatar_url || "/default-avatar.png";
                   </a>
                 )
               })}
+
             </div>
           </div>
         )}
@@ -300,7 +338,7 @@ const avatarUrl = user?.avatar_url || "/default-avatar.png";
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col items-center space-y-4">
-            <QRCodeSVG value={profileUrl} size={256} />
+              <QRCodeSVG id="qr-code-svg" value={profileUrl} size={256} />
             <a href={profileUrl} target="_blank" rel="noopener noreferrer">
               {profileUrl}
             </a>
@@ -314,9 +352,10 @@ const avatarUrl = user?.avatar_url || "/default-avatar.png";
               </div>
             </div>
             <div className="flex gap-2 w-full">
-              <Button variant="outline">
+              <Button variant="outline" onClick={downloadQR}>
                 <Download className="w-4 h-4 mr-2" /> Download
               </Button>
+
               <Button onClick={() => setIsQRModalOpen(false)}>Close</Button>
             </div>
           </div>

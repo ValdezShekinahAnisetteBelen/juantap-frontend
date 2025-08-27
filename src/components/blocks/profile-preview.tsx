@@ -5,7 +5,7 @@ import api from "@/lib/axios"
 import { Button } from "@/components/ui/button"
 import { QRCodeCanvas } from "qrcode.react"
 import {
-  Facebook, Instagram, Twitter, Linkedin, Github, Youtube, Music, Globe
+  Facebook, Instagram, Twitter, Linkedin, Github, Youtube, Music, Globe, User
 } from "lucide-react"
 
 interface SocialLink {
@@ -16,7 +16,7 @@ interface SocialLink {
   isVisible: boolean
 }
 
-interface User {
+interface UserData {
   id: number
   name: string
   email: string
@@ -28,7 +28,7 @@ interface User {
 }
 
 export function ProfilePreview() {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<UserData | null>(null)
 
   const socialIconMap: Record<string, JSX.Element> = {
     facebook: <Facebook size={14} />,
@@ -38,13 +38,6 @@ export function ProfilePreview() {
     github: <Github size={14} />,
     youtube: <Youtube size={14} />,
     tiktok: <Music size={14} />,
-  }
-
-  // ✅ Build full profile image URL
-  const getProfileImageUrl = (path?: string) => {
-    if (!path) return ""
-    if (path.startsWith("http")) return path
-    return `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/${path}`
   }
 
   useEffect(() => {
@@ -69,19 +62,11 @@ export function ProfilePreview() {
     <div className="relative">
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-auto border">
         
-        {/* Profile Image or Initials */}
+        {/* Profile Icon (Default User Icon) */}
         <div className="flex items-center space-x-3 mb-6">
-          {user.profile_image ? (
-            <img
-              src={getProfileImageUrl(user.profile_image)}
-              alt={user.name}
-              className="w-16 h-16 rounded-full object-cover border"
-            />
-          ) : (
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
-              {user.name.split(" ").map((n) => n[0]).join("").toUpperCase()}
-            </div>
-          )}
+          <div className="w-16 h-16 rounded-full border flex items-center justify-center bg-gray-100">
+            <User size={32} className="text-gray-500" />
+          </div>
           <div>
             <h3 className="font-semibold text-lg">{user.name}</h3>
             <p className="text-gray-500">{user.email}</p>

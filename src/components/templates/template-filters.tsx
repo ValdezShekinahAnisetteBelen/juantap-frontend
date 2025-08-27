@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
+import { Search } from "lucide-react";
 
 interface TemplateFiltersProps {
   searchQuery: string;
@@ -13,20 +15,32 @@ interface TemplateFiltersProps {
 }
 
 export function TemplateFilters({ searchQuery, setSearchQuery }: TemplateFiltersProps) {
+  const pathname = usePathname();
   const [activeCategory, setActiveCategory] = useState("all");
 
-  const categories = [
-    { id: "all", label: "All Templates", count: 10 },
-    { id: "free", label: "Free", count: 3 },
-    { id: "premium", label: "Premium", count: 7 },
-  ];
 
-  const layouts = ["All Layouts", "Minimal", "Modern", "Creative", "Professional", "Artistic"];
-  const sortOptions = ["Popular", "Newest", "Price: Low to High", "Price: High to Low", "Most Downloaded"];
 
   return (
     <div className="mb-12">
-      {/* Search and Sort */}
+      {/* Back Button + Heading (only on /dashboard) */}
+      {pathname === "/dashboard" && (
+        <div className="flex items-center gap-4 mb-6">
+          <Link href="/">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">My Templates</h1>
+            <p className="text-gray-600">
+              View and manage your saved and purchased templates.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Search */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -37,56 +51,6 @@ export function TemplateFilters({ searchQuery, setSearchQuery }: TemplateFilters
             className="pl-10"
           />
         </div>
-        <div className="flex gap-2">
-          {/* Sort and Layout selects (you can lift their states too if needed) */}
-          <Select defaultValue="popular">
-            <SelectTrigger className="w-48">
-              <SlidersHorizontal className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {sortOptions.map((option) => (
-                <SelectItem key={option} value={option.toLowerCase().replace(/[^a-z0-9]/g, "")}>
-                  {option}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select defaultValue="all">
-            <SelectTrigger className="w-40">
-              <Filter className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {layouts.map((layout) => (
-                <SelectItem key={layout} value={layout.toLowerCase().replace(/[^a-z0-9]/g, "")}>
-                  {layout}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Category Filters */}
-      <div className="flex flex-wrap gap-2">
-        {categories.map((category) => (
-          <Button
-            key={category.id}
-            variant={activeCategory === category.id ? "default" : "outline"}
-            onClick={() => setActiveCategory(category.id)}
-            className={`${
-              activeCategory === category.id
-                ? "bg-gradient-to-r from-purple-600 to-pink-600"
-                : "bg-transparent hover:bg-gray-50"
-            }`}
-          >
-            {category.label}
-            <Badge variant="secondary" className="ml-2">
-              {category.count}
-            </Badge>
-          </Button>
-        ))}
       </div>
     </div>
   );

@@ -1,12 +1,11 @@
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Crown, Download, Eye, Star, Sparkles } from "lucide-react"
+import { Crown, Download, Eye, Star, User as UserIcon, Sparkles, UserStarIcon } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { PreviewRenderer } from "@/components/templates/PreviewRenderer"
 import type { Template, User } from "@/types/template"
-
 
 interface TemplateCardProps {
   template: Template
@@ -15,7 +14,7 @@ interface TemplateCardProps {
 
 export function TemplateCard({ template, user }: TemplateCardProps) {
   const isPremium = template.category === "premium"
-  const hasDiscount = !!(template.originalPrice && template.discount)
+  const hasDiscount = !!(template.original_price && template.discount)
   const [showRealPreview, setShowRealPreview] = useState(false)
 
   useEffect(() => {
@@ -64,26 +63,26 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
         </div>
 
         {/* Discount Badge */}
-        {hasDiscount && (
-          <div className="absolute top-3 right-3">
-            <Badge variant="destructive" className="bg-red-500">
-              -{template.discount}%
-            </Badge>
+       {isPremium && hasDiscount && (
+        <div className="absolute top-3 right-3">
+          <Badge variant="destructive" className="bg-red-500">
+            -{template.discount}%
+          </Badge>
+        </div>
+      )}
+
+
+        {/* Hover Overlay */}
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <div className="flex gap-2">
+            <Link href={`/template-by-id/${template.slug}`}>
+              <Button size="sm" variant="secondary">
+                <Eye className="w-4 h-4 mr-1" />
+                Preview
+              </Button>
+            </Link>
           </div>
-        )}
-
-          {/* Hover Overlay */}
-    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-      <div className="flex gap-2">
-        <Link href={`/template-by-id/${template.slug}`}>
-          <Button size="sm" variant="secondary">
-            <Eye className="w-4 h-4 mr-1" />
-            Preview
-          </Button>
-        </Link>
-      </div>
-    </div>
-
+        </div>
       </div>
 
       <CardContent className="p-4">
@@ -91,10 +90,6 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
           <h3 className="font-semibold text-lg text-gray-900 group-hover:text-purple-600 transition-colors">
             {template.name}
           </h3>
-          <div className="flex items-center gap-1 text-sm text-gray-500">
-            <Download className="w-3 h-3" />
-            {template.downloads?.toLocaleString() ?? 0}
-          </div>
         </div>
 
         <p className="text-sm text-gray-600 mb-3 line-clamp-2">{template.description}</p>
@@ -108,46 +103,55 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
         </div>
       </CardContent>
 
-     <CardFooter className="p-4 pt-0">
-      <div className="flex items-center justify-between w-full">
-        {/* 👤 Author Info */}
+      <CardFooter className="p-4 pt-0">
+        <div className="flex items-center justify-between w-full">
+          {/* 👤 Author Info */}
         <div className="flex items-center gap-2">
-          {template.user?.avatar_url && (
-            <img
-              src={template.user.avatar_url}
-              alt={template.user.name}
-              className="w-6 h-6 rounded-full object-cover"
-            />
-          )}
-          <span className="text-sm text-gray-700">
-            {template.user?.display_name || template.user?.name || "Unknown"}
-          </span>
-        </div>
-
-        {/* 💰 Price / Button */}
-        <div className="flex items-center gap-2">
-          {isPremium ? (
-            hasDiscount ? (
-              <>
-                <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
-                <span className="text-sm text-gray-500 line-through">₱{template.original_price}</span>
-              </>
-            ) : (
-              <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
-            )
-          ) : (
-            <span className="text-lg font-bold text-green-600">Free</span>
-          )}
-
-          <Link href={`/template-by-id/${template.slug}`}>
-            <Button size="sm" className={isPremium ? "bg-gradient-to-r from-purple-600 to-pink-600" : ""}>
-              {isPremium ? "Get Premium" : "Use Free"}
-            </Button>
-          </Link>
-        </div>
+        {template.user?.avatar_url ? (
+          <img
+            src={template.user.avatar_url}
+            alt={template.user.name || "Author"}
+            className="w-6 h-6 rounded-full object-cover"
+            onError={(e) => {
+              e.currentTarget.onerror = null
+              e.currentTarget.style.display = "none" // hide broken image
+            }}
+          />
+        ) : (
+          <UserIcon size={24} className="text-white" />
+        )}
       </div>
-    </CardFooter>
 
+          {/* 📊 Stats + Price + Button */}
+          <div className="flex items-center gap-4">
+            
+
+            {/* Price & Button */}
+            <div className="flex items-center gap-2">
+              {isPremium ? (
+                hasDiscount ? (
+                  <>
+                    <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
+                    <span className="text-sm text-gray-500 line-through">
+                      ₱{template.original_price}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
+                )
+              ) : (
+                <span className="text-lg font-bold text-green-600">Free</span>
+              )}
+
+              <Link href={`/template-by-id/${template.slug}`}>
+                <Button size="sm" className={isPremium ? "bg-gradient-to-r from-purple-600 to-pink-600" : ""}>
+                  {isPremium ? "Get Premium" : "Use Free"}
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </CardFooter>
     </Card>
   )
 }

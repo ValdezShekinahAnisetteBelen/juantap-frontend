@@ -116,7 +116,7 @@ export default function AdminUsersPage() {
                       <td className="py-2">{idx + 1}</td>
                       <td className="py-2 flex items-center gap-2">
                      <img
-                        src={user.profile_image_url || "/defaults/avatar.png"}
+                        src={user.profile_image_url || "defaults/avatar.png"}
                         alt={user.name}
                         className="w-8 h-8 rounded-full object-cover"
                         />
@@ -168,7 +168,7 @@ export default function AdminUsersPage() {
 
             <div className="flex flex-col items-center gap-4">
                <img
-                    src={selectedUser.profile_image_url || "/defaults/avatar.png"}
+                    src={selectedUser.profile_image_url || "https://play-lh.googleusercontent.com/y85Wq41fBfoivml6J3lTqB-WINrb2dbUTGVbYkRG12vIbiJXO97Y6N4y3JWA2rcFiQ=w480-h960-rw"}
                     alt={selectedUser.name}
                     className="w-24 h-24 rounded-full object-cover"
                     />

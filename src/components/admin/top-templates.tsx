@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Download, Eye } from "lucide-react"
+import { Download, Eye, ArrowUp, ArrowDown } from "lucide-react"
 
 export function TopTemplates() {
   const [topTemplates, setTopTemplates] = useState([])
@@ -26,7 +26,13 @@ export function TopTemplates() {
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
 
-        const data = await res.json()
+        let data = await res.json()
+
+        // Sort by unlocks descending and take top 5
+        data = data
+          .sort((a, b) => (b.unlocks ?? 0) - (a.unlocks ?? 0))
+          .slice(0, 5)
+
         setTopTemplates(data)
       } catch (err) {
         console.error("Failed to fetch top templates:", err)
@@ -60,16 +66,19 @@ export function TopTemplates() {
                       {template.category}
                     </Badge>
                   </div>
+
                   <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
                     <div className="flex items-center space-x-1">
                       <Download className="h-3 w-3" />
-                      <span>{template.downloads.toLocaleString()}</span>
+                      <span>{(template.unlocks ?? 0).toLocaleString()}</span>
                     </div>
+
                     <div className="flex items-center space-x-1">
                       <Eye className="h-3 w-3" />
-                      <span>{template.views.toLocaleString()}</span>
+                      <span>{(template.saves ?? 0).toLocaleString()}</span>
                     </div>
-                    {template.revenue > 0 && (
+
+                    {Number(template.revenue) > 0 && (
                       <div className="flex items-center space-x-1">
                         <span className="text-xs font-bold">₱</span>
                         <span>{Number(template.revenue).toLocaleString("en-PH", { minimumFractionDigits: 2 })}</span>
@@ -78,14 +87,13 @@ export function TopTemplates() {
                   </div>
                 </div>
 
-                <div
-                  className={`text-xs px-2 py-1 rounded ${
-                    template.trend === "up"
-                      ? "bg-green-100 text-green-600"
-                      : "bg-red-100 text-red-600"
-                  }`}
-                >
-                  {template.trend === "up" ? "↗" : "↘"}
+                {/* Lucide React arrow */}
+                <div className="flex items-center">
+                  {template.trend === "up" ? (
+                    <ArrowUp className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <ArrowDown className="h-4 w-4 text-red-600" />
+                  )}
                 </div>
               </div>
             ))}

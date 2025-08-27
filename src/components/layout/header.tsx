@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/blocks/logo"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Edit, Eye, Files, User } from "lucide-react"
 
 import {
   DropdownMenu,
@@ -15,7 +16,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Edit, Eye, Files } from "lucide-react"
 
 export function Header() {
   const [user, setUser] = useState<any>(null)
@@ -144,14 +144,14 @@ useEffect(() => {
                     src={getProfileImageUrl(user?.profile_image)}
                     alt="Profile"
                   />
-                  <AvatarFallback>
-                    {user?.name
-                      ? user.name
-                          .split(" ")
-                          .map((n) => n[0]?.toUpperCase())
-                          .join("")
-                      : "?"}
-                  </AvatarFallback>
+               <AvatarFallback>
+              {user?.name
+                ? user.name
+                    .split(" ")
+                    .map((n) => n[0]?.toUpperCase())
+                    .join("")
+                : <User className="h-5 w-5 text-gray-500" />}
+            </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>

@@ -47,8 +47,8 @@ export async function getTemplateById(id: string): Promise<Template> {
 
 // ✅ Get current user (with profile + socials, normalized avatar URL)
 export async function getCurrentUser(): Promise<User | null> {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
-  if (!token) return null
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  if (!token) return null;
 
   try {
     const res = await fetch(`${API_URL}/user-profile`, {
@@ -57,24 +57,26 @@ export async function getCurrentUser(): Promise<User | null> {
         Accept: "application/json",
       },
       cache: "no-store",
-    })
+    });
 
-    if (!res.ok) return null
+    if (!res.ok) return null;
 
-    const data = await res.json()
+    const data = await res.json();
 
-    // ✅ Normalize & return consistent User object
+    // ✅ Normalize avatar URL
+    let avatarUrl = "/default-avatar.png";
+    if (data.profile_image) {
+      const cleanPath = data.profile_image.replace(/^storage\//, "");
+      avatarUrl = `${IMAGE_URL.replace(/\/$/, "")}/storage/${cleanPath}`;
+    }
+
     return {
       id: data.id,
       name: data.name,
       username: data.username,
       email: data.email,
       is_admin: data.is_admin,
-      avatar_url: data.profile_image
-        ? data.profile_image.startsWith("http")
-          ? data.profile_image
-          : `${IMAGE_URL}/${data.profile_image}` // ✅ fix double /storage
-        : "/default-avatar.png",
+      avatar_url: avatarUrl,
       display_name: data.display_name ?? data.name,
       profile: {
         bio: data.profile?.bio ?? "",
@@ -83,12 +85,13 @@ export async function getCurrentUser(): Promise<User | null> {
         location: data.profile?.location ?? "",
         socialLinks: data.profile?.socialLinks ?? [],
       },
-    }
+    };
   } catch (err) {
-    console.error("Error fetching current user:", err)
-    return null
+    console.error("Error fetching current user:", err);
+    return null;
   }
 }
+
 
 // src/lib/template-data.ts
 export async function getUserTemplatesWithStatus(): Promise<Template[]> {
@@ -113,5 +116,84 @@ export async function getUserTemplatesWithStatus(): Promise<Template[]> {
   }
 }
 
+export async function fetchTemplatesWithStats(): Promise<Template[]> {
+  try {
+    const [templatesRes, statsRes] = await Promise.all([
+      fetch(`${API_URL}/templates`, { cache: "no-store" }),
+      fetch(`${API_URL}/stats/top-templates`, { cache: "no-store" }),
+    ])
+
+    if (!templatesRes.ok || !statsRes.ok) {
+      throw new Error("Failed to fetch templates or stats")
+    }
+
+    const templates: Template[] = await templatesRes.json()
+    const stats: any[] = await statsRes.json()
+
+    return templates.map((tpl) => {
+      const stat = stats.find((s) => s.id === tpl.id)
+      return {
+        ...tpl,
+        unlocks: stat?.unlocks ?? 0,
+        saves: stat?.saves ?? 0,
+        revenue: stat?.revenue ?? 0,
+      }
+    })
+  } catch (err) {
+    console.error("Error fetching templates with stats:", err)
+    return []
+  }
+}
+
+// Get saved templates
+export async function getSavedTemplates(): Promise<Template[]> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+  if (!token) return []
+
+  try {
+    const res = await fetch(`${API_URL}/templates1/saved`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    })
+
+    if (!res.ok) throw new Error("Failed to fetch saved templates")
+
+    const data = await res.json()
+    return Array.isArray(data) ? data : []
+  } catch (err) {
+    console.error("Error fetching saved templates:", err)
+    return []
+  }
+}
+
+// Get bought templates
+export async function getBoughtTemplates(): Promise<Template[]> {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+  if (!token) return []
+
+  try {
+    const res = await fetch(`${API_URL}/templates1/boughted`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    })
+
+    if (!res.ok) throw new Error("Failed to fetch bought templates")
+
+    const data = await res.json()
+    return Array.isArray(data?.data) ? data.data : []
+  } catch (err) {
+    console.error("Error fetching bought templates:", err)
+    return []
+  }
+}
+
 // ✅ Export constants (in case you need them in components)
 export { API_URL, IMAGE_URL, FRONTEND_URL }
+
+//template-gallery

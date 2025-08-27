@@ -11,7 +11,7 @@ const features = [
   },
   {
     icon: Palette,
-    title: "Custom Design Templates",
+    title: "Choose Design Templates",
     description: "Choose from beautiful templates and customize colors, fonts, backgrounds to match your brand.",
     color: "purple",
   },

@@ -297,12 +297,6 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
               <span className="text-gray-600">Layout Style</span>
               <span className="font-medium capitalize">{template.layout}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Downloads</span>
-              <span className="font-medium">
-                {template.downloads?.toLocaleString() ?? "0"}
-              </span>
-            </div>
           </CardContent>
         </Card>
 

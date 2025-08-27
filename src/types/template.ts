@@ -1,5 +1,3 @@
-// src/types/template.ts
-
 export interface SocialLink {
   id: string
   platform: string
@@ -16,6 +14,11 @@ export interface User {
   is_admin: boolean
   avatar_url: string
   display_name?: string
+
+  // ✅ add these two optional fields
+  profile_image?: string
+  profile_image_url?: string
+
   profile?: {
     bio?: string
     phone?: string
@@ -47,6 +50,11 @@ export interface Template {
   created_at?: string
   updated_at?: string
   downloads?: number
+  status?: "saved" | "bought" | string 
 
   user?: User
+
+  unlocks?: number   // downloads
+  saves?: number     // views
 }
+

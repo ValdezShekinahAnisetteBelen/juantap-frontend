@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Upload, CreditCard, Smartphone, Building, CheckCircle, AlertCircle, X, FileText } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 interface PaymentModalProps {
@@ -27,44 +27,73 @@ interface PaymentMethod {
   accountInfo: string;
 }
 
-const paymentMethods: PaymentMethod[] = [
-  {
-    id: "gcash",
-    name: "GCash",
-    icon: Smartphone,
-    details: "Mobile payment via GCash app",
-    accountInfo: "0917-123-4567 (Juan Tap)",
-  },
-  {
-    id: "paymaya",
-    name: "PayMaya",
-    icon: CreditCard,
-    details: "Digital wallet payment",
-    accountInfo: "0917-123-4567 (Juan Tap)",
-  },
-  {
-    id: "bpi",
-    name: "BPI Bank Transfer",
-    icon: Building,
-    details: "Bank to bank transfer",
-    accountInfo: "Account: 1234-5678-90 (Juan Tap)",
-  },
-  {
-    id: "bdo",
-    name: "BDO Bank Transfer",
-    icon: Building,
-    details: "Bank to bank transfer",
-    accountInfo: "Account: 0987-6543-21 (Juan Tap)",
-  },
-];
+export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
+  // 🔑 Move useEffect inside the component
+useEffect(() => {
+  const fetchPaymentAccounts = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/user-profile`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const accounts = res.data.payment_accounts || {};
+      const methods: PaymentMethod[] = [];
+
+      if (accounts.gcash) {
+        methods.push({
+          id: "gcash",
+          name: "GCash",
+          icon: Smartphone,
+          details: "Mobile payment via GCash app",
+          accountInfo: accounts.gcash,
+        });
+      }
+      if (accounts.paymaya) {
+        methods.push({
+          id: "paymaya",
+          name: "PayMaya",
+          icon: CreditCard,
+          details: "Digital wallet payment",
+          accountInfo: accounts.paymaya,
+        });
+      }
+      if (accounts.bpi) {
+        methods.push({
+          id: "bpi",
+          name: "BPI Bank Transfer",
+          icon: Building,
+          details: "Bank to bank transfer",
+          accountInfo: accounts.bpi,
+        });
+      }
+      if (accounts.bdo) {
+        methods.push({
+          id: "bdo",
+          name: "BDO Bank Transfer",
+          icon: Building,
+          details: "Bank to bank transfer",
+          accountInfo: accounts.bdo,
+        });
+      }
+
+      setAvailableMethods(methods);
+    } catch (err) {
+      console.error("Failed to fetch payment accounts:", err);
+    }
+  };
+
+  if (isOpen) fetchPaymentAccounts();
+}, [isOpen]);
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 
-export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
   const pathname = usePathname();
   const currentSlug = pathname.split("/").pop() || "";
-
+  const [availableMethods, setAvailableMethods] = useState<PaymentMethod[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [referenceNumber, setReferenceNumber] = useState("");
@@ -283,7 +312,7 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
             <div>
               <Label className="text-base font-semibold mb-4 block">Choose Payment Method</Label>
               <div className="grid md:grid-cols-2 gap-3">
-                {paymentMethods.map((method) => (
+                {availableMethods.map((method) => (
                   <Card
                     key={method.id}
                     className={`cursor-pointer transition-all ${
@@ -313,12 +342,16 @@ export function PaymentModal({ isOpen, onClose, template }: PaymentModalProps) {
             </div>
 
             {/* Account Information */}
-            {selectedMethod && (
+           {selectedMethod && (
               <Card className="bg-gray-50">
                 <CardContent className="p-4">
                   <h4 className="font-semibold mb-2">Payment Details</h4>
-                  <p className="text-sm text-gray-700">{paymentMethods.find((m) => m.id === selectedMethod)?.accountInfo}</p>
-                  <p className="text-sm font-medium text-purple-600 mt-2">Amount: ₱{template.price}</p>
+                  <p className="text-sm text-gray-700">
+                    {availableMethods.find((m) => m.id === selectedMethod)?.accountInfo}
+                  </p>
+                  <p className="text-sm font-medium text-purple-600 mt-2">
+                    Amount: ₱{template.price}
+                  </p>
                 </CardContent>
               </Card>
             )}
