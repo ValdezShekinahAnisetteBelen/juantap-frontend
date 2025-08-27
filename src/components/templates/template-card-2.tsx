@@ -101,7 +101,8 @@ const [avatarError, setAvatarError] = useState(false)
   }
 
   return (
-    <div className="w-full flex justify-center p-6" style={{ backgroundColor: "#f9fafb" }}>
+ <div className="w-full flex justify-center p-6" style={{ backgroundColor: "transparent" }}>
+
       <div
         className="w-full max-w-lg shadow-lg rounded-2xl overflow-hidden flex flex-col"
         style={{

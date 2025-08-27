@@ -166,25 +166,42 @@ export default function TemplatePage({ params }: Props) {
 
   if (!template) return <div className="p-6">Loading...</div>
 
-  return (
+return (
     <>
       <header className="w-full bg-gray-50 px-6 py-4 shadow-sm">
         <TemplatePreviewHeader template={template} />
       </header>
 
-      <div className="min-h-screen bg-gray-50 flex gap-6 p-6">
-        <main className="flex-1">
-          {/* ✅ Pass user (with avatar_url, phone, website, location, socials) */}
-          <TemplateCard template={template} user={user} slug={slug} />
+      {/* Background wrapper with soft purple gradient and subtle orbs */}
+      <div className="min-h-screen relative bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 overflow-hidden">
 
-          <div className="container mx-auto px-4 py-10">
-            <TemplatePreviewContent template={template} />
-          </div>
-        </main>
+        {/* Animated orbs / dots */}
+        <div className="absolute inset-0 opacity-30 pointer-events-none">
+          <div className="absolute top-10 left-10 w-2 h-2 bg-gray-800 rounded-full animate-pulse"></div>
+          <div className="absolute top-20 right-20 w-1 h-1 bg-purple-700 rounded-full animate-ping"></div>
+          <div className="absolute bottom-20 left-20 w-3 h-3 bg-pink-600 rounded-full animate-bounce"></div>
+          <div className="absolute top-1/2 right-10 w-2 h-2 bg-blue-700 rounded-full animate-pulse delay-1000"></div>
+          <div className="absolute bottom-10 right-1/3 w-1 h-1 bg-gray-800 rounded-full animate-ping delay-500"></div>
+        </div>
 
-        <aside className="w-80">
-          <TemplatePreviewSidebar template={template} />
-        </aside>
+        {/* Soft blurred gradient circles */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-r from-purple-300/30 to-pink-300/30 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-r from-blue-300/30 to-indigo-300/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
+
+        {/* Main content */}
+        <div className="flex gap-6 p-6 relative z-10">
+          <main className="flex-1">
+            <TemplateCard template={template} user={user} slug={slug} />
+
+            <div className="container mx-auto px-4 py-10">
+              <TemplatePreviewContent template={template} />
+            </div>
+          </main>
+
+          <aside className="w-80">
+            <TemplatePreviewSidebar template={template} />
+          </aside>
+        </div>
       </div>
     </>
   )

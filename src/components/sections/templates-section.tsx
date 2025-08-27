@@ -5,7 +5,7 @@ const pricingPlans = [
     name: "Free Templates",
     description: "Perfect for getting started",
     price: "Free",
-    priceColor: "text-green-600",
+    priceColor: "text-green-700", // Darker green
     features: [
       "2+ Beautiful Templates",
       "Basic Customization",
@@ -22,7 +22,7 @@ const pricingPlans = [
     description: "Stand out with exclusive designs",
     price: "₱299",
     priceSubtext: "one-time payment per template",
-    priceColor: "bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent",
+    priceColor: "bg-gradient-to-r from-purple-700 to-pink-700 bg-clip-text text-transparent", // Darker gradient
     features: [
       "20+ Exclusive Templates",
       "Advanced Customization",
@@ -32,28 +32,35 @@ const pricingPlans = [
     ],
     buttonText: "Unlock Premium",
     buttonVariant: "default" as const,
-    buttonClass: "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700",
+    buttonClass: "bg-gradient-to-r from-purple-700 to-pink-700 hover:from-purple-800 hover:to-pink-800", // Darker hover
     badge: "Most Popular",
-    borderClass: "border-2 border-purple-300 hover:border-purple-400",
-    iconColor: "text-purple-500",
+    borderClass: "border-2 border-purple-400 hover:border-purple-500",
+    iconColor: "text-purple-600", // Slightly darker
   },
 ]
 
 export function TemplatesSection() {
   return (
-    <section id="pricing" className="py-20 px-4 bg-white">
-      <div className="container mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Choose Your Template Style</h2>
-          <p className="text-xl text-gray-600">Free templates to get started, premium designs to stand out</p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {pricingPlans.map((plan) => (
-            <PricingCard key={plan.name} {...plan} />
-          ))}
-        </div>
+    <section
+    id="pricing"
+    className="py-20 px-4 bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100"
+  >
+    <div className="container mx-auto">
+      <div className="text-center mb-16">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-gray-900 via-purple-800 to-pink-800 bg-clip-text text-transparent drop-shadow-sm">
+          Choose Your Template Style
+        </h2>
+        <p className="text-xl text-purple-900/80 max-w-2xl mx-auto leading-relaxed font-light">
+          Free templates to get started, premium designs to stand out
+        </p>
       </div>
-    </section>
+
+      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        {pricingPlans.map((plan) => (
+          <PricingCard key={plan.name} {...plan} />
+        ))}
+      </div>
+    </div>
+  </section>
   )
 }

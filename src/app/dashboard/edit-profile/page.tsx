@@ -140,7 +140,8 @@ if (!profile) {
 }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+   <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white">
+
       <Header/>
       
       <main className="container mx-auto px-4 py-8">
@@ -155,8 +156,8 @@ if (!profile) {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Edit Profile</h1>
-                <p className="text-gray-600">Update your profile information and customize your digital presence.</p>
+                <h1 className="text-3xl font-bold text-white">Edit Profile</h1>
+                <p className="text-white">Update your profile information and customize your digital presence.</p>
               </div>
             </div>
 

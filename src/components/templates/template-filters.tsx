@@ -41,17 +41,18 @@ export function TemplateFilters({ searchQuery, setSearchQuery }: TemplateFilters
       )}
 
       {/* Search */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search templates..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+    <div className="flex flex-col md:flex-row gap-4 mb-6">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+        <Input
+          placeholder="Search templates..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10 bg-white text-gray-900"
+        />
       </div>
+    </div>
+
     </div>
   );
 }
