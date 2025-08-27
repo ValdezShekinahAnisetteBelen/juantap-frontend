@@ -118,10 +118,20 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
         />
 
         {/* Avatar & Bio */}
-          <div className="relative flex flex-col items-center mt-6 px-6">
-            <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center -mt-12">
-              <User size={64} className="text-gray-400" />
-            </div>
+        <div className="relative flex flex-col items-center mt-6 px-6">
+          <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 -mt-12">
+            {author.avatar ? (
+              <img
+                src={author.avatar}
+                alt={author.displayName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="flex items-center justify-center w-full h-full bg-white/20">
+                <User size={64} className="text-gray-400" />
+              </div>
+            )}
+          </div>
 
             <h1
               className="mt-4 text-xl font-bold"

@@ -147,9 +147,19 @@ const avatarUrl = user?.avatar_url || "/default-avatar.png";
 
         {/* Avatar & Bio */}
       <div className="relative flex flex-col items-center mt-6 px-6">
-        <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center -mt-12">
-          <UserIcon size={64} className="text-gray-400" />
-        </div>
+       <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 -mt-12">
+        {user?.avatar_url ? (
+          <img
+            src={avatarUrl}
+            alt="User avatar"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full bg-white/20">
+            <UserIcon size={64} className="text-gray-400" />
+          </div>
+        )}
+      </div>
 
         <h1
           className="mt-4 text-xl font-bold"
