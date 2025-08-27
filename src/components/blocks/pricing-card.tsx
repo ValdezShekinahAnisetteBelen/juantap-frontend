@@ -17,6 +17,7 @@ interface PricingCardProps {
   badge?: string
   borderClass?: string
   iconColor?: string
+  onClick?: () => void // ✅ ADDED: Optional onClick handler
 }
 
 export function PricingCard({
@@ -32,6 +33,7 @@ export function PricingCard({
   badge,
   borderClass = "border-2 border-gray-200 hover:border-blue-300",
   iconColor = "text-green-500",
+  onClick, // ✅ ADDED
 }: PricingCardProps) {
   return (
     <Card className={cn("transition-colors relative", borderClass)}>
@@ -55,7 +57,11 @@ export function PricingCard({
             </li>
           ))}
         </ul>
-        <Button className={cn("w-full mt-6", buttonClass)} variant={buttonVariant}>
+        <Button
+          className={cn("w-full mt-6", buttonClass)}
+          variant={buttonVariant}
+          onClick={onClick} // ✅ Hooked up to trigger passed function
+        >
           {buttonText}
         </Button>
       </CardContent>

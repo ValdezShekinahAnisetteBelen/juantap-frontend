@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useEffect, useState, use } from "react"
+import React, { useEffect, useState, use } from "react" // <-- import `use`
+import { useRouter } from "next/navigation"
 import { TemplateCard } from "@/components/templates/template-card-2"
 import { TemplatePreviewHeader } from "@/components/templates/template-preview-header"
 import { TemplatePreviewContent } from "@/components/templates/template-preview-content"
@@ -42,7 +43,6 @@ interface UserData {
   }
 }
 
-
 interface TemplateData {
   name: string
   description?: string
@@ -57,6 +57,7 @@ interface TemplateData {
     heading: string
     body: string
   }
+  sections?: any[]
   [key: string]: any
 }
 
@@ -76,17 +77,30 @@ const defaultFonts = {
 }
 
 interface Props {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }> // <-- params is a Promise now
 }
 
 export default function TemplatePage({ params }: Props) {
-  // ✅ unwrap the promise using React.use()
-  const { slug } = use(params)
+const { slug } = use(params)
 
   const [template, setTemplate] = useState<TemplateData | null>(null)
   const [user, setUser] = useState<UserData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
 
-  // Fetch template data
+  const router = useRouter()
+
+  // 🔑 Check authentication
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null
+    if (!token) {
+      router.push("/login")
+    } else {
+      setIsAuthenticated(true)
+    }
+  }, [router])
+
+  // 🔄 Fetch template data
   useEffect(() => {
     const fetchTemplate = async () => {
       try {
@@ -118,13 +132,15 @@ export default function TemplatePage({ params }: Props) {
         })
       } catch (err) {
         console.error("Error fetching template:", err)
+      } finally {
+        setLoading(false)
       }
     }
 
     fetchTemplate()
   }, [slug])
 
-  // Fetch logged-in user (with profile + socials)
+  // 🔄 Fetch logged-in user
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -145,7 +161,7 @@ export default function TemplatePage({ params }: Props) {
           id: data.id,
           name: data.name,
           email: data.email,
-          username: data.username, 
+          username: data.username,
           is_admin: data.is_admin,
           avatar_url: data.avatar_url,
           profile: {
@@ -164,18 +180,29 @@ export default function TemplatePage({ params }: Props) {
     fetchUser()
   }, [])
 
-  if (!template) return <div className="p-6">Loading...</div>
+  // 🌀 Show loading state
+  if (isAuthenticated === null || loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="animate-spin h-12 w-12 rounded-full border-4 border-blue-500 border-t-transparent"></div>
+      </div>
+    )
+  }
 
-return (
+  if (!template) {
+    return <div className="p-6 text-center text-gray-600">Template not found.</div>
+  }
+
+  return (
     <>
       <header className="w-full bg-gray-50 px-6 py-4 shadow-sm">
         <TemplatePreviewHeader template={template} />
       </header>
 
-      {/* Background wrapper with soft purple gradient and subtle orbs */}
+      {/* Background wrapper with gradient + orbs */}
       <div className="min-h-screen relative bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 overflow-hidden">
 
-        {/* Animated orbs / dots */}
+        {/* Animated orbs */}
         <div className="absolute inset-0 opacity-30 pointer-events-none">
           <div className="absolute top-10 left-10 w-2 h-2 bg-gray-800 rounded-full animate-pulse"></div>
           <div className="absolute top-20 right-20 w-1 h-1 bg-purple-700 rounded-full animate-ping"></div>
@@ -184,7 +211,7 @@ return (
           <div className="absolute bottom-10 right-1/3 w-1 h-1 bg-gray-800 rounded-full animate-ping delay-500"></div>
         </div>
 
-        {/* Soft blurred gradient circles */}
+        {/* Soft blurred circles */}
         <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-r from-purple-300/30 to-pink-300/30 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-r from-blue-300/30 to-indigo-300/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
@@ -192,7 +219,6 @@ return (
         <div className="flex gap-6 p-6 relative z-10">
           <main className="flex-1">
             <TemplateCard template={template} user={user} slug={slug} />
-
             <div className="container mx-auto px-4 py-10">
               <TemplatePreviewContent template={template} />
             </div>

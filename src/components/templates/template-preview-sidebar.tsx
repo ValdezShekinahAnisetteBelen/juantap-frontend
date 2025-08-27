@@ -301,8 +301,9 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
         </Card>
 
         {/* Premium extra info */}
+       <Card>
         {isPremium && (
-          <Card>
+          <>
             <CardHeader>
               <CardTitle>What's Included</CardTitle>
             </CardHeader>
@@ -320,20 +321,22 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
                 </div>
               ))}
             </CardContent>
-          </Card>
+            </>
         )}
+        </Card>
       </div>
 
-      <PaymentModal
-        isOpen={showPaymentModal}
-        onClose={() => setShowPaymentModal(false)}
-        template={template}
-        onPaymentSuccess={() => {
-          setShowPaymentModal(false);
-          setSavedStatus("bought");
-          toast.success("Payment successful! Template unlocked.");
-        }}
-      />
+     <PaymentModal
+      isOpen={showPaymentModal}
+      onClose={() => setShowPaymentModal(false)}
+      template={template}
+      onPaymentSuccess={() => {
+        setShowPaymentModal(false);
+        setSavedStatus("bought");
+        toast.success("Payment successful! Template unlocked.");
+      }}
+    />
+
     </>
   );
 }

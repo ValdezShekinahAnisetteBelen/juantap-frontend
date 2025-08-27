@@ -13,6 +13,9 @@ import Link from "next/link"
 import { useEffect, useState, useRef } from "react"
 import { toast } from "sonner"
 import axios from "axios";
+import { useRouter } from "next/navigation";
+
+
 
 export default function EditProfilePage() {
   const [profile, setProfile] = useState<any>({
@@ -21,6 +24,8 @@ export default function EditProfilePage() {
   email: "",
 })
 
+const router = useRouter();
+const [isSaving, setIsSaving] = useState(false);
 const [socialLinks, setSocialLinks] = useState([
   {
     id: null,                // for update
@@ -34,31 +39,33 @@ const [socialLinks, setSocialLinks] = useState([
 const avatarInputRef = useRef<HTMLInputElement>(null)
 
 const handleSave = async () => {
-  const token = localStorage.getItem("token")
-  if (!token) return
+  const token = localStorage.getItem("token");
+  if (!token) return;
 
-  const formData = new FormData()
-  if (avatarFile) formData.append("avatar", avatarFile)
+   setIsSaving(true);
 
-  formData.append("name", profile.name || "")
-  formData.append("firstname", profile.firstname || "")
-  formData.append("lastname", profile.lastname || "")
-  formData.append("display_name", profile.display_name || "")
-  formData.append("username", profile.username || "")
-  formData.append("bio", profile.bio || "")
-  formData.append("phone", profile.phone || "")
-  formData.append("website", profile.website || "")
-  formData.append("location", profile.location || "")
+  const formData = new FormData();
+  if (avatarFile) formData.append("avatar", avatarFile);
+
+  formData.append("name", profile.name || "");
+  formData.append("firstname", profile.firstname || "");
+  formData.append("lastname", profile.lastname || "");
+  formData.append("display_name", profile.display_name || "");
+  formData.append("username", profile.username || "");
+  formData.append("bio", profile.bio || "");
+  formData.append("phone", profile.phone || "");
+  formData.append("website", profile.website || "");
+  formData.append("location", profile.location || "");
 
   socialLinks.forEach((link, index) => {
     if (link.id !== null && link.id !== undefined) {
-      formData.append(`social_links[${index}][id]`, String(link.id))
+      formData.append(`social_links[${index}][id]`, String(link.id));
     }
-    formData.append(`social_links[${index}][platform]`, link.platform)
-    formData.append(`social_links[${index}][url]`, link.url)
-    formData.append(`social_links[${index}][display_name]`, link.display_name || "")
-    formData.append(`social_links[${index}][is_visible]`, link.is_visible ? "1" : "0")
-  })
+    formData.append(`social_links[${index}][platform]`, link.platform);
+    formData.append(`social_links[${index}][url]`, link.url);
+    formData.append(`social_links[${index}][display_name]`, link.display_name || "");
+    formData.append(`social_links[${index}][is_visible]`, link.is_visible ? "1" : "0");
+  });
 
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profile`, {
@@ -67,21 +74,33 @@ const handleSave = async () => {
         Authorization: `Bearer ${token}`,
       },
       body: formData,
-    })
+    });
 
     if (res.ok) {
-      const data = await res.json()
-      setProfile((prev: any) => ({ ...prev, ...data }))
-      toast.success("Profile saved!")     // <-- success toast here
+      const data = await res.json();
+      setProfile((prev: any) => ({ ...prev, ...data }));
+      toast.success("Profile saved!");
+    } else if (res.status === 422) {
+      // Validation errors
+      const err = await res.json();
+      if (err.errors?.username) {
+        toast.error("Username is already taken. Please choose another.");
+      } else {
+        // Show the first validation error if any
+        const firstError = Object.values(err.errors || {})[0]?.[0];
+        toast.error(firstError || "Validation error. Please check your input.");
+      }
     } else {
-      const err = await res.json()
-      toast.error("Error: " + JSON.stringify(err))   // <-- error toast here
+      const err = await res.json();
+      toast.error("Error: " + JSON.stringify(err));
     }
   } catch (err) {
-    console.error("Failed to save profile", err)
-    toast.error("Failed to save profile. Please try again.")   // <-- error toast here
+    console.error("Failed to save profile", err);
+    toast.error("Failed to save profile. Username maybe already taken. Please try again.");
+  }finally {
+    setIsSaving(false); // stop loading
   }
-}
+};
 
 
 useEffect(() => {
@@ -133,11 +152,25 @@ useEffect(() => {
 const [avatarFile, setAvatarFile] = useState<File | null>(null)
 const [previewURL, setPreviewURL] = useState<string | null>(null)
 
+const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+
+useEffect(() => {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
+  if (!token) {
+    router.push("/login"); // redirect if no token
+  } else {
+    setIsAuthenticated(true); // allow access if token exists
+  }
+}, [router]);
+
+
 
 // ✅ ADD THIS LINE BEFORE THE RETURN
-if (!profile) {
-  return <div className="p-8">Loading profile...</div>
-}
+// Show nothing while checking auth
+if (isAuthenticated === null) return null;
+if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
 
   return (
    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white">
@@ -462,15 +495,26 @@ if (!profile) {
             </Card>
 
             {/* Save Button */}
-            <div className="flex justify-end">
-              <Button
-            onClick={handleSave}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Save Changes
-          </Button>
-            </div>
+          <div className="flex justify-end">
+            <Button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            >
+              {isSaving ? (
+                <div className="flex items-center gap-2">
+                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+                  Saving...
+                </div>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </div>
+
           </div>
         </div>
       </main>

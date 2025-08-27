@@ -1,10 +1,10 @@
 // app/layout.tsx
 import "./globals.css"
-import { Toaster } from "sonner"
+import ClientWrapper from "@/components/client-wrapper"
 
 export const metadata = {
-  title: "Your App",
-  description: "Your app description",
+  title: "JuanTap",
+  description: "",
 }
 
 export default function RootLayout({
@@ -14,9 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className="min-h-screen bg-gray-50 flex flex-col">
         {children}
-        <Toaster richColors position="top-center" />
+        <ClientWrapper />
       </body>
     </html>
   )

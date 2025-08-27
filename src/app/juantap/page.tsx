@@ -7,10 +7,10 @@ import { FeaturesSection } from "@/components/sections/features-section";
 import { HowItWorksSection } from "@/components/sections/how-it-works-section";
 import { TemplatesSection } from "@/components/sections/templates-section";
 import { CTASection } from "@/components/sections/cta-section";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function HomePage() {
+export default function LandingPage() {
   const router = useRouter();
 
   useEffect(() => {
