@@ -43,7 +43,7 @@ interface TemplateCardProps {
 export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug }) => {
   const [isQRModalOpen, setIsQRModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
-
+const [avatarError, setAvatarError] = useState(false)
  const profileUrl = `${process.env.NEXT_PUBLIC_FRONTEND_URL}/${user?.username || ''}`
 
   const socialIconMap: Record<string, React.ReactNode> = {
@@ -59,7 +59,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
   const author = user
     ? {
         displayName: user.name,
-        avatar: user.avatar_url ?? "/default-avatar.png",
+       avatar: user.profile?.avatar || user.avatar_url || null,
         email: user.email ?? null,
         phone: user.profile?.phone ?? null,
         website: user.profile?.website ?? null,
@@ -69,7 +69,7 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
       }
     : {
         displayName: "Anonymous",
-        avatar: "/default-avatar.png",
+        avatar: null,
         email: null,
         phone: null,
         website: null,
@@ -120,19 +120,19 @@ export const TemplateCard: React.FC<TemplateCardProps> = ({ template, user, slug
         {/* Avatar & Bio */}
         <div className="relative flex flex-col items-center mt-6 px-6">
           <div className="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 -mt-12">
-            {author.avatar ? (
-              <img
-                src={author.avatar}
-                alt={author.displayName}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="flex items-center justify-center w-full h-full bg-white/20">
-                <User size={64} className="text-gray-400" />
-              </div>
-            )}
+         {author.avatar && !avatarError ? (
+          <img
+            src={author.avatar}
+            alt={author.displayName}
+            className="w-full h-full object-cover"
+            onError={() => setAvatarError(true)}
+          />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full bg-white/20">
+            <User size={64} className="text-gray-400" />
           </div>
-
+        )}
+                  </div>
             <h1
               className="mt-4 text-xl font-bold"
               style={{
