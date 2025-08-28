@@ -1,3 +1,5 @@
+"use client"; 
+
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -6,6 +8,8 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { PreviewRenderer } from "@/components/templates/PreviewRenderer"
 import type { Template, User } from "@/types/template"
+import { Loader2 } from "lucide-react"; 
+import { useRouter } from "next/navigation";
 
 interface TemplateCardProps {
   template: Template
@@ -13,9 +17,16 @@ interface TemplateCardProps {
 }
 
 export function TemplateCard({ template, user }: TemplateCardProps) {
+  const router = useRouter();
   const isPremium = template.category === "premium"
   const hasDiscount = !!(template.original_price && template.discount)
-  const [showRealPreview, setShowRealPreview] = useState(false)
+  const [showRealPreview, setShowRealPreview] = useState(false);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+
+  const handlePreviewClick = () => {
+  setLoadingPreview(true);
+  router.push(`/template-by-id/${template.slug}`);
+};
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -73,16 +84,25 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
 
 
         {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <div className="flex gap-2">
-            <Link href={`/template-by-id/${template.slug}`}>
-              <Button size="sm" variant="secondary">
-                <Eye className="w-4 h-4 mr-1" />
-                Preview
-              </Button>
-            </Link>
-          </div>
-        </div>
+      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={loadingPreview}
+          onClick={handlePreviewClick}
+          className="flex items-center gap-1"
+        >
+          {loadingPreview ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Eye className="w-4 h-4" />
+          )}
+          <span>Preview</span>
+        </Button>
+      </div>
+    </div>
+
       </div>
 
       <CardContent className="p-4">

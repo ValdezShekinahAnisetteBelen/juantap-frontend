@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/blocks/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Edit, Eye, Files, User } from "lucide-react";
+import { Edit, Eye, Files, User, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,12 +16,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+
 export function Header() {
   const [user, setUser] = useState<any>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const [hash, setHash] = useState("");
+  const [loadingNav, setLoadingNav] = useState<string | null>(null);
+const [loadingItem, setLoadingItem] = useState<string | null>(null);
+const [loadingAction, setLoadingAction] = useState<string | null>(null);
+    const handleNavClick = (path: string) => {
+    setLoadingNav(path); // show loader for clicked nav
+    router.push(path);
+  };
+
 
   // Load cached user immediately for instant render
   useEffect(() => {
@@ -73,11 +82,19 @@ export function Header() {
     return `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/${path}`;
   };
 
-  const handleLogout = () => {
+  
+const handleLogout = async () => {
+  setLoadingAction("logout"); // start loader
+  // simulate a short delay if needed for API cleanup
+  setTimeout(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    setIsLoggedIn(false);
+    setUser(null);
+    setLoadingAction(null); // stop loader
     router.push("/login");
-  };
+  }, 300); // small delay to show loader
+};
 
   const isActive = (path: string) => {
     if (path === "/") return pathname === "/" && hash === "";
@@ -91,36 +108,22 @@ export function Header() {
 
         {isLoggedIn && (
           <nav className="hidden md:flex items-center space-x-6">
-            <Link
-              href="/"
-              className={`transition-colors ${isActive("/") ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-gray-900"}`}
-            >
-              Home
-            </Link>
+            <button
+            onClick={() => handleNavClick("/")}
+            className={`transition-colors flex items-center space-x-1 ${isActive("/") ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-gray-900"}`}
+          >
+            <span>Home</span>
+            {loadingNav === "/" && <Loader2 className="h-4 w-4 animate-spin" />}
+          </button>
 
-            {pathname === "/" && (
-              <>
-                <Link
-                  href="/#features"
-                  className={`transition-colors ${hash === "#features" ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-gray-900"}`}
-                >
-                  Features
-                </Link>
-                <Link
-                  href="/#how-it-works"
-                  className={`transition-colors ${hash === "#how-it-works" ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-gray-900"}`}
-                >
-                  How It Works
-                </Link>
-              </>
-            )}
-
-            <Link
-              href="/templates"
-              className={`transition-colors ${isActive("/templates") ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-gray-900"}`}
+          
+           <button
+              onClick={() => handleNavClick("/templates")}
+              className={`transition-colors ${isActive("/templates") ? "text-blue-600 font-semibold" : "text-gray-600 hover:text-gray-900"} flex items-center space-x-1`}
             >
-              Templates
-            </Link>
+              <span>Templates</span>
+              {loadingNav === "/templates" && <Loader2 className="h-4 w-4 animate-spin" />}
+            </button>
           </nav>
         )}
 
@@ -142,53 +145,81 @@ export function Header() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end">
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.name || "User"}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard/edit-profile">
-                    <Edit className="mr-2 h-4 w-4" />
-                    <span>Edit Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    if (!user?.username) {
-                      e.preventDefault();
-                      alert("Set a username first in Edit Profile.");
-                      return;
-                    }
-                    router.push(`${user.username}`);
-                  }}
-                  className={!user?.username ? "cursor-not-allowed opacity-50" : ""}
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  <span>View Public Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard">
-                    <Files className="mr-2 h-4 w-4" />
-                    <span>My Templates</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </DropdownMenuContent>
+            <DropdownMenuContent className="w-56" align="end">
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-1">
+              <p className="text-sm font-medium leading-none">{user?.name || "User"}</p>
+              <p className="text-xs leading-none text-muted-foreground">{user?.email || ""}</p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+
+          <DropdownMenuItem
+            asChild
+            onClick={() => setLoadingItem("editProfile")}
+          >
+            <Link href="/dashboard/edit-profile" className="flex items-center space-x-2">
+              {loadingItem === "editProfile" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Edit className="h-4 w-4" />
+              )}
+              <span>Edit Profile</span>
+            </Link>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={(e) => {
+              if (!user?.username) {
+                e.preventDefault();
+                alert("Set a username first in Edit Profile.");
+                return;
+              }
+              setLoadingItem("viewProfile");
+              router.push(`/${user.username}`);
+            }}
+            className={!user?.username ? "cursor-not-allowed opacity-50" : "flex items-center space-x-2"}
+          >
+            {loadingItem === "viewProfile" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+            <span>View Public Profile</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            asChild
+            onClick={() => setLoadingItem("myTemplates")}
+          >
+            <Link href="/dashboard" className="flex items-center space-x-2">
+              {loadingItem === "myTemplates" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Files className="h-4 w-4" />
+              )}
+              <span>My Templates</span>
+            </Link>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+        </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <div className="space-x-2">
-              <Link href="/login">
-                <Button variant="outline">Login</Button>
-              </Link>
-              <Link href="/register">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  Sign Up
+              <Link href="/login" onClick={() => setLoadingAction("login")}>
+                <Button variant="outline" disabled={loadingAction === "login"}>
+                  {loadingAction === "login" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Login"}
                 </Button>
               </Link>
+             <Link href="/register" onClick={() => setLoadingAction("register")}>
+              <Button
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                disabled={loadingAction === "register"}
+              >
+                {loadingAction === "register" ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign Up"}
+              </Button>
+            </Link>
             </div>
           )}
 
@@ -197,8 +228,13 @@ export function Header() {
               size="sm"
               onClick={handleLogout}
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              disabled={loadingAction === "logout"}
             >
-              Logout
+              {loadingAction === "logout" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Logout"
+              )}
             </Button>
           )}
         </div>

@@ -13,7 +13,7 @@ export function TermsModal() {
       <DialogTrigger asChild>
         <button
           type="button"
-          className="text-blue-600 hover:text-blue-500 underline font-medium"
+          className="text-purple-400 hover:text-pink-300 font-medium cursor-pointer no-underline transition-colors"
         >
           Terms of Service
         </button>
@@ -21,7 +21,7 @@ export function TermsModal() {
 
       <DialogContent className="max-w-lg max-h-[90vh] rounded-2xl border-0 shadow-2xl overflow-hidden">
         {/* Header with Gradient */}
-      <DialogHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-3xl">
+        <DialogHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-3xl">
           <DialogTitle className="text-lg font-bold">Terms of Service</DialogTitle>
         </DialogHeader>
 

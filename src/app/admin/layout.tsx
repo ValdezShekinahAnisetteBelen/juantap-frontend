@@ -1,22 +1,27 @@
-// app/layout.tsx
-import { AdminSidebar } from "@/components/admin/admin-sidebar"
+"use client";
 
-export const metadata = {
-  title: "Your App",
-  description: "Your app description",
-}
+import { useState } from "react";
+import { AdminSidebar } from "@/components/admin/admin-sidebar";
+import { Button } from "@/components/ui/button";
+import { Menu } from "lucide-react";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
   return (
-    <html lang="en">
-      <body className="min-h-screen bg-gray-50 flex">
-        <AdminSidebar />
-        <main className="flex-1 ml-64">{children}</main>
-      </body>
-    </html>
-  )
+    <div className="min-h-screen flex bg-gray-50 relative">
+      <AdminSidebar isOpen={isSidebarOpen} setIsOpen={setSidebarOpen} />
+      
+      <main className="flex-1 md:ml-64 p-4">
+        {/* Mobile toggle button */}
+        <div className="md:hidden mb-4">
+          <Button onClick={() => setSidebarOpen(true)}>
+            <Menu className="h-4 w-4 mr-2" />
+            Open Menu
+          </Button>
+        </div>
+        {children}
+      </main>
+    </div>
+  );
 }

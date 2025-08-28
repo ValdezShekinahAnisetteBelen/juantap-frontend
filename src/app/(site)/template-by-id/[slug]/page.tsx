@@ -1,11 +1,12 @@
 "use client"
 
-import React, { useEffect, useState, use } from "react" // <-- import `use`
+import React, { useEffect, useState, use } from "react" // use() for unwrapping Promise
 import { useRouter } from "next/navigation"
 import { TemplateCard } from "@/components/templates/template-card-2"
 import { TemplatePreviewHeader } from "@/components/templates/template-preview-header"
 import { TemplatePreviewContent } from "@/components/templates/template-preview-content"
 import { TemplatePreviewSidebar } from "@/components/templates/template-preview-sidebar"
+import { Loading } from "@/components/loading"
 
 interface SocialLink {
   id: string
@@ -77,11 +78,11 @@ const defaultFonts = {
 }
 
 interface Props {
-  params: Promise<{ slug: string }> // <-- params is a Promise now
+  params: Promise<{ slug: string }> // params is a Promise
 }
 
 export default function TemplatePage({ params }: Props) {
-const { slug } = use(params)
+  const { slug } = use(params) // unwrap Promise
 
   const [template, setTemplate] = useState<TemplateData | null>(null)
   const [user, setUser] = useState<UserData | null>(null)
@@ -180,13 +181,9 @@ const { slug } = use(params)
     fetchUser()
   }, [])
 
-  // 🌀 Show loading state
+  // 🌀 Show loading state using custom Loading component
   if (isAuthenticated === null || loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="animate-spin h-12 w-12 rounded-full border-4 border-blue-500 border-t-transparent"></div>
-      </div>
-    )
+    return <Loading />
   }
 
   if (!template) {
@@ -216,7 +213,7 @@ const { slug } = use(params)
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-r from-blue-300/30 to-indigo-300/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
         {/* Main content */}
-        <div className="flex gap-6 p-6 relative z-10">
+        <div className="flex flex-col lg:flex-row gap-6 p-6 relative z-10">
           <main className="flex-1">
             <TemplateCard template={template} user={user} slug={slug} />
             <div className="container mx-auto px-4 py-10">
@@ -224,10 +221,11 @@ const { slug } = use(params)
             </div>
           </main>
 
-          <aside className="w-80">
+          <aside className="w-full lg:w-80">
             <TemplatePreviewSidebar template={template} />
           </aside>
         </div>
+
       </div>
     </>
   )

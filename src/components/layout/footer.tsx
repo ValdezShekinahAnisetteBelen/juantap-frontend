@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Logo } from "@/components/blocks/logo"
+import { TermsModal } from "@/components/auth/TermsModal"
 
 interface FooterSection {
   title: string
@@ -26,23 +27,21 @@ const footerSections: FooterSection[] = [
     ],
   },
   {
-    title: "Company",
-    links: [
-      { href: "#", label: "Terms of Service" },
-    ],
+    title: "User Agreement",
+    links: [{ href: "#", label: "Terms of Service" }],
   },
 ]
 
 export function Footer() {
   return (
-    <footer className="bg-gray-900 text-white py-12 px-4">
+    <footer className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white py-12 px-4">
       <div className="container mx-auto">
         <div className="grid md:grid-cols-4 gap-8">
           <div>
             <div className="mb-4">
               <Logo variant="dark" />
             </div>
-            <p className="text-gray-400">
+            <p className="text-purple-200/80">
               Create and share your digital profile with the world. One tap, endless possibilities.
             </p>
           </div>
@@ -50,12 +49,19 @@ export function Footer() {
           {footerSections.map((section) => (
             <div key={section.title}>
               <h4 className="font-semibold mb-4">{section.title}</h4>
-              <ul className="space-y-2 text-gray-400">
-                {section.links.map((link, item) => (
+              <ul className="space-y-2 text-purple-200/70">
+                {section.links.map((link) => (
                   <li key={link.label}>
-                    <Link href={link.href} className="hover:text-white transition-colors">
-                      {link.label}
-                    </Link>
+                    {link.label === "Terms of Service" ? (
+                      <TermsModal />
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="hover:text-pink-200 transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -63,7 +69,7 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+        <div className="border-t border-white/20 mt-8 pt-8 text-center text-purple-200/60">
           <p>&copy; 2025 JuanTap. All rights reserved.</p>
         </div>
       </div>

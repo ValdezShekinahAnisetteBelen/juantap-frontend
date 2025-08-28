@@ -1,3 +1,5 @@
+'use client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -18,6 +20,7 @@ interface PricingCardProps {
   borderClass?: string
   iconColor?: string
   onClick?: () => void // ✅ ADDED: Optional onClick handler
+   loadingBtn?: string
 }
 
 export function PricingCard({
@@ -33,7 +36,9 @@ export function PricingCard({
   badge,
   borderClass = "border-2 border-gray-200 hover:border-blue-300",
   iconColor = "text-green-500",
-  onClick, // ✅ ADDED
+  onClick,
+  loadingBtn
+  
 }: PricingCardProps) {
   return (
     <Card className={cn("transition-colors relative", borderClass)}>
@@ -57,13 +62,18 @@ export function PricingCard({
             </li>
           ))}
         </ul>
-        <Button
-          className={cn("w-full mt-6", buttonClass)}
-          variant={buttonVariant}
-          onClick={onClick} // ✅ Hooked up to trigger passed function
-        >
-          {buttonText}
-        </Button>
+        
+     <Button
+      className={cn("w-full mt-6 flex items-center justify-center gap-2", buttonClass)}
+      variant={buttonVariant}
+      onClick={onClick}
+      disabled={loadingBtn === name}
+    >
+      {loadingBtn === name ? "Loading..." : buttonText}
+    </Button>
+
+
+
       </CardContent>
     </Card>
   )
