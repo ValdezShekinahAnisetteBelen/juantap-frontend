@@ -97,10 +97,11 @@ export function ProfilePreview() {
 
         {/* QR Code */}
         <div className="flex justify-center">
-          <QRCodeCanvas
-            value={`https://juantap.info/${user.username}`}
-            size={128}
-          />
+         <QRCodeCanvas
+              value={`${process.env.NEXT_PUBLIC_FRONTEND_URL}/${user.username}`}
+              size={128}
+            />
+
         </div>
       </div>
     </div>
