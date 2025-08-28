@@ -207,13 +207,16 @@ const handleGetTemplate = () => {
             <Button
               onClick={handleGetTemplate}
               disabled={isSavingTemplate || isPurchasing}
-              className={`w-full ${
-                isPremium
-                  ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                  : savedStatus === "saved"
-                  ? "bg-red-600 hover:bg-red-700"
-                  : "bg-green-600 hover:bg-green-700"
-              }`}
+             className={`w-full ${
+                  isPremium
+                    ? savedStatus === "pending"
+                      ? "bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700"
+                      : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    : savedStatus === "saved"
+                    ? "bg-red-600 hover:bg-red-700"
+                    : "bg-green-600 hover:bg-green-700"
+                }`}
+
               size="lg"
             >
               {(isSavingTemplate || isPurchasing) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

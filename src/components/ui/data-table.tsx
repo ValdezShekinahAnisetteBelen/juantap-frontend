@@ -141,60 +141,60 @@ export function DataTable<TData extends { id: number }, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
-                const payment = row.original as Payment
-                return (
-                  <>
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
-                      ))}
-                    </TableRow>
+         <TableBody>
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => {
+              const payment = row.original as Payment
+              const isExpanded = expandedRows.includes(payment.id)
 
-                    {expandedRows.includes(payment.id) && (
-                      <TableRow className="bg-gray-50">
-                        <TableCell
-                          colSpan={row.getVisibleCells().length + 1}
-                          className="px-5 py-3 text-sm text-gray-700"
-                        >
-                          <div className="flex flex-wrap gap-8">
-                            <div>
-                              <strong>Template Price:</strong> ₱
-                              {payment.template?.price?.toLocaleString("en-PH") ??
-                                "-"}
-                            </div>
-                            <div>
-                              <strong>User Email:</strong> {payment.user?.email ?? "-"}
-                            </div>
-                            <div>
-                              <strong>User Contact:</strong>{" "}
-                              {payment.user?.profile?.phone ?? "-"}
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </>
-                )
-              })
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length + 1} className="h-24 text-center">
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+              const baseRow = (
+                <TableRow
+                  key={`row-${row.id}`}
+                  data-state={row.getIsSelected() && "selected"}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              )
+
+              const expandedRow = isExpanded ? (
+                <TableRow key={`expanded-${row.id}`} className="bg-gray-50">
+                  <TableCell
+                    colSpan={row.getVisibleCells().length + 1}
+                    className="px-5 py-3 text-sm text-gray-700"
+                  >
+                    <div className="flex flex-wrap gap-8">
+                      <div>
+                        <strong>Template Price:</strong> ₱
+                        {payment.template?.price?.toLocaleString("en-PH") ?? "-"}
+                      </div>
+                      <div>
+                        <strong>User Email:</strong> {payment.user?.email ?? "-"}
+                      </div>
+                      <div>
+                        <strong>User Contact:</strong>{" "}
+                        {payment.user?.profile?.phone ?? "-"}
+                      </div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : null
+
+              // ✅ Return array of TableRow elements with keys
+              return [baseRow, expandedRow]
+            })
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length + 1} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+
         </Table>
       </div>
 
