@@ -174,8 +174,6 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
 
   return (
    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white">
-
-      <Header/>
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
