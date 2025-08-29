@@ -18,6 +18,10 @@ import { useRouter } from "next/navigation";
 
 
 export default function EditProfilePage() {
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [isFileTooLarge, setIsFileTooLarge] = useState(false);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+const [currentUser, setCurrentUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>({
   name: "",
  
@@ -119,7 +123,6 @@ useEffect(() => {
       if (res.ok) {
         const userData = await res.json()
 
-        // Extract profile and social_links
         const { profile, profile_image, email, display_name, username, name, firstname, lastname } = userData
         const socialLinks = userData?.profile?.social_links || []
 
@@ -137,8 +140,10 @@ useEffect(() => {
 
         setSocialLinks(socialLinks.map((link: any) => ({
           ...link,
-          is_visible: !!link.is_visible, // Ensure boolean
+          is_visible: !!link.is_visible,
         })))
+
+        setCurrentUser(userData); // ✅ Fix: move here inside the if block
       }
     } catch (error) {
       console.error("Error fetching profile:", error)
@@ -147,6 +152,44 @@ useEffect(() => {
 
   fetchProfile()
 }, [])
+
+useEffect(() => {
+  const checkUsername = async () => {
+    const username = profile.username?.trim();
+
+    if (!username) {
+      setUsernameError(null);
+      return;
+    }
+
+    // If username is the same as the current user, skip check
+    if (username === currentUser?.username) {
+      setUsernameError(null);
+      return;
+    }
+
+    setIsCheckingUsername(true);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/profile/${username}`);
+      if (res.ok) {
+        setUsernameError("Username is already taken");
+      } else {
+        setUsernameError(null); // Username is available
+      }
+    } catch (err) {
+      setUsernameError(null); // Assume available if error
+    } finally {
+      setIsCheckingUsername(false);
+    }
+  };
+
+  const timeout = setTimeout(() => {
+    checkUsername();
+  }, 500); // debounce delay
+
+  return () => clearTimeout(timeout);
+}, [profile.username]);
 
 
 const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -224,20 +267,36 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
 
             <div className="space-y-2">
               {/* ✅ Hidden file input with ref */}
-            <input
-              type="file"
-              accept="image/*"
-              ref={avatarInputRef}
-              onChange={(e) => {
-                const file = e.target.files?.[0]
-                if (file) {
-                  setAvatarFile(file)
-                  setPreviewURL(URL.createObjectURL(file))
-                }
-              }}
-              className="hidden"
-            />
-            
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg"
+                  ref={avatarInputRef}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+
+                    if (file) {
+                      const fileSizeMB = file.size / (1024 * 1024); // Convert bytes to MB
+                      const validTypes = ["image/jpeg", "image/png"];
+
+                      if (!validTypes.includes(file.type)) {
+                        toast.error("Invalid file type. Only JPG and PNG are allowed.");
+                        e.target.value = ""; // Clear the input
+                        return;
+                      }
+
+                      if (fileSizeMB > 5) {
+                        toast.error("File size exceeds 5MB. Please choose a smaller image.");
+                        e.target.value = ""; // Clear the input
+                        return;
+                      }
+
+                      setAvatarFile(file);
+                      setPreviewURL(URL.createObjectURL(file));
+                    }
+                  }}
+                  className="hidden"
+                />
+
 
             <Button
               variant="outline"
@@ -294,23 +353,26 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="username">Username</Label>
-                  <div className="flex">
-                   <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+               <div>
+                <Label htmlFor="username">Username</Label>
+                <div className="flex">
+                  <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
                     {(process.env.NEXT_PUBLIC_FRONTEND_URL?.replace(/^https?:\/\//, "") ?? "localhost:3000") + "/"}
                   </span>
-
 
                   <Input
                     id="username"
                     value={profile.username || ""}
                     onChange={(e) => setProfile({ ...profile, username: e.target.value })}
                     placeholder="username"
+                    className={usernameError ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
                   />
-
-                  </div>
                 </div>
+                {usernameError && (
+                  <p className="text-red-500 text-sm mt-1">{usernameError}</p>
+                )}
+              </div>
+
 
                 <div>
                   <Label htmlFor="bio">Bio</Label>
@@ -494,23 +556,24 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
 
             {/* Save Button */}
           <div className="flex justify-end">
-            <Button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              {isSaving ? (
-                <div className="flex items-center gap-2">
-                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-                  Saving...
-                </div>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
+           <Button
+                onClick={handleSave}
+                disabled={isSaving || !!usernameError}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                {isSaving ? (
+                  <div className="flex items-center gap-2">
+                    <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+                    Saving...
+                  </div>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+
           </div>
 
           </div>

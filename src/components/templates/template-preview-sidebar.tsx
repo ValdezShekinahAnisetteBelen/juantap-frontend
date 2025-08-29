@@ -18,6 +18,7 @@ export function TemplatePreviewSidebar({ template }: TemplatePreviewSidebarProps
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 const [isPurchasing, setIsPurchasing] = useState(false);
   // Separate loading states
+  const [isLoadingStatus, setIsLoadingStatus] = useState(true);
   const [isSavingTemplate, setIsSavingTemplate] = useState(false);
   const [isTogglingUsed, setIsTogglingUsed] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -79,10 +80,12 @@ const [isPurchasing, setIsPurchasing] = useState(false);
       }
     };
 
-    fetchSavedTemplates();
-    fetchBoughtedTemplates();
-    fetchUsedTemplates();
-  }, [API_URL, template.slug]);
+      Promise.all([
+    fetchSavedTemplates(),
+    fetchBoughtedTemplates(),
+    fetchUsedTemplates()
+  ]).finally(() => setIsLoadingStatus(false));
+}, [API_URL, template.slug]);
 
   // --- Actions ---
   const saveTemplate = async () => {
@@ -206,20 +209,19 @@ const handleGetTemplate = () => {
 
             <Button
               onClick={handleGetTemplate}
-              disabled={isSavingTemplate || isPurchasing}
-             className={`w-full ${
-                  isPremium
-                    ? savedStatus === "pending"
-                      ? "bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700"
-                      : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                    : savedStatus === "saved"
-                    ? "bg-red-600 hover:bg-red-700"
-                    : "bg-green-600 hover:bg-green-700"
-                }`}
-
+              disabled={isSavingTemplate || isPurchasing || isLoadingStatus}  // <-- add isLoadingStatus here
+              className={`w-full ${
+                isPremium
+                  ? savedStatus === "pending"
+                    ? "bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700"
+                    : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                  : savedStatus === "saved"
+                  ? "bg-red-600 hover:bg-red-700"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
               size="lg"
             >
-              {(isSavingTemplate || isPurchasing) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                          {(isSavingTemplate || isPurchasing) && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               <Download className="w-4 h-4 mr-2" />
               {isPremium
                 ? savedStatus === "bought"
