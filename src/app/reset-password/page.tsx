@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
 import { Logo } from "@/components/blocks/logo"
 
@@ -61,9 +61,13 @@ export default function ResetPasswordPage() {
 
       setSuccess("Password reset successful. Redirecting to login...")
       setTimeout(() => router.push("/login"), 2000)
-    } catch (err: any) {
+    } catch (err: unknown) {
+    if (err instanceof Error) {
       setError(err.message)
-    } finally {
+    } else {
+      setError("Something went wrong")
+    }
+  } finally {
       setLoading(false)
     }
   }

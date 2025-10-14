@@ -26,6 +26,13 @@ type Template = {
   is_hidden?: boolean
 }
 
+type TemplatePayload = Omit<Template, "features" | "colors" | "fonts" | "tags"> & {
+  features: string;
+  colors: string;
+  fonts: string;
+  tags: string;
+};
+
 export default function EditTemplatePage() {
   const { slug } = useParams()
   const router = useRouter()
@@ -62,40 +69,42 @@ export default function EditTemplatePage() {
     fetchTemplate()
   }, [slug])
 
-  // Save template update
-  const saveTemplate = async () => {
-    if (!template) return
-    setSaving(true)
+ const saveTemplate = async () => {
+  if (!template) return;
+  setSaving(true);
 
-    try {
-      const payload: any = { ...template }
+  try {
+    const payload = {
+      ...template,
+      features: JSON.stringify(template.features),
+      colors: JSON.stringify(template.colors),
+      fonts: JSON.stringify(template.fonts),
+      tags: JSON.stringify(template.tags),
+      is_hidden: template.is_hidden ? 1 : 0,
+      is_premium: template.is_premium ? 1 : 0,
+    };
 
-      // Convert arrays/objects to JSON strings for Laravel
-      if (payload.features) payload.features = JSON.stringify(payload.features)
-      if (payload.colors) payload.colors = JSON.stringify(payload.colors)
-      if (payload.fonts) payload.fonts = JSON.stringify(payload.fonts)
-      if (payload.tags) payload.tags = JSON.stringify(payload.tags)
+    await axios.put(
+      `${process.env.NEXT_PUBLIC_API_URL}/templates/${template.id}`,
+      payload,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
 
-      await axios.put(
-        `${process.env.NEXT_PUBLIC_API_URL}/templates/${template.id}`,
-        payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-      )
-
-      alert("Template updated successfully!")
-      router.push("/admin/templates")
-    } catch (err) {
-      console.error("❌ Failed to update template:", err)
-      alert("Error saving template.")
-    } finally {
-      setSaving(false)
-    }
+    alert("Template updated successfully!");
+    router.push("/admin/templates");
+  } catch (err: any) {
+    console.error("❌ Failed to update template:", err.response?.data || err);
+    alert("Error saving template.");
+  } finally {
+    setSaving(false);
   }
+};
+
 
   if (loading) return <p>Loading template...</p>
   if (!template) return <p>Template not found</p>

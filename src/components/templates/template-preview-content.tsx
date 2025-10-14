@@ -23,43 +23,26 @@ export function TemplatePreviewContent({ template }: TemplatePreviewContentProps
             <Palette className="w-5 h-5 text-purple-600" />
             <h3 className="text-lg font-semibold">Color Palette</h3>
           </div>
-          <div className="grid grid-cols-5 gap-2">
-            <div className="text-center">
-              <div
-                className="w-12 h-12 rounded-lg border-2 border-gray-200 mx-auto mb-2"
-                style={{ backgroundColor: template?.colors?.primary ?? "#ddd" }}
-              />
-              <span className="text-xs text-gray-600">Primary</span>
-            </div>
-            <div className="text-center">
-              <div
-                className="w-12 h-12 rounded-lg border-2 border-gray-200 mx-auto mb-2"
-                style={{ backgroundColor: template?.colors?.secondary ?? "#ddd" }}
-              />
-              <span className="text-xs text-gray-600">Secondary</span>
-            </div>
-            <div className="text-center">
-              <div
-                className="w-12 h-12 rounded-lg border-2 border-gray-200 mx-auto mb-2"
-                style={{ backgroundColor: template?.colors?.accent ?? "#ddd" }}
-              />
-              <span className="text-xs text-gray-600">Accent</span>
-            </div>
-            <div className="text-center">
-              <div
-                className="w-12 h-12 rounded-lg border-2 border-gray-200 mx-auto mb-2"
-                style={{ backgroundColor: template?.colors?.background ?? "#ddd" }}
-              />
-              <span className="text-xs text-gray-600">Background</span>
-            </div>
-            <div className="text-center">
-              <div
-                className="w-12 h-12 rounded-lg border-2 border-gray-200 mx-auto mb-2"
-                style={{ backgroundColor: template?.colors?.text ?? "#ddd" }}
-              />
-              <span className="text-xs text-gray-600">Text</span>
-            </div>
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
+            {[
+              { label: "Primary", color: template?.colors?.primary ?? "#ddd" },
+              { label: "Secondary", color: template?.colors?.secondary ?? "#ddd" },
+              { label: "Accent", color: template?.colors?.accent ?? "#ddd" },
+              { label: "Background", color: template?.colors?.background ?? "#ddd" },
+              { label: "Text", color: template?.colors?.text ?? "#ddd" },
+            ].map(({ label, color }) => (
+              <div key={label} className="flex flex-col items-center">
+                <div
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border border-gray-200 mb-1 sm:mb-2"
+                  style={{ backgroundColor: color }}
+                />
+                <span className="text-[10px] sm:text-xs text-gray-600 text-center break-words">
+                  {label}
+                </span>
+              </div>
+            ))}
           </div>
+
         </Card>
 
         {/* Typography */}

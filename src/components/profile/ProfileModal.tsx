@@ -39,12 +39,12 @@ function ProfileModal({ open, onClose, refreshUser }: any) {
   const [previewURL, setPreviewURL] = useState<string | null>(null)
   const avatarInputRef = useRef<HTMLInputElement>(null)
 
-  // Convert backend path to full image URL
   const getProfileImageUrl = (path?: string) => {
-    if (!path) return "/avatar.png"
-    if (path.startsWith("http")) return path
-    return `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/${path}`
-  }
+  if (!path) return "/avatar.png"
+  if (path.startsWith("http")) return path
+  // Path already includes 'avatars/' prefix from backend
+  return `${process.env.NEXT_PUBLIC_IMAGE_URL}/${path}`
+}
 
   // Fetch user profile from /user-profile
   useEffect(() => {

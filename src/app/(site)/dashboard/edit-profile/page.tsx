@@ -6,40 +6,67 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Header } from "@/components/layout/header"
-import { Save, User, Globe, MapPin, Phone, Mail, Upload, Plus, Trash2, Eye, EyeOff, ArrowLeft } from 'lucide-react'
+import { Save, User, Globe, MapPin, Phone, Mail, Upload, Plus, ArrowLeft } from 'lucide-react'
 import Link from "next/link"
 import { useEffect, useState, useRef } from "react"
 import { toast } from "sonner"
-import axios from "axios";
 import { useRouter } from "next/navigation";
 
+interface Profile {
+  name: string;
+  firstname?: string;
+  lastname?: string;
+  email: string;
+  display_name?: string;
+  username?: string;
+  bio?: string;
+  phone?: string;
+  website?: string;
+  location?: string;
+  profile_image?: string;
+}
+
+interface SocialLink {
+  id: number | null;
+  platform: string;
+  url: string;
+  display_name: string;
+  is_visible: boolean;
+}
+
+interface User {
+  profile: Profile;
+  profile_image?: string;
+  email: string;
+  display_name?: string;
+  username?: string;
+  name?: string;
+  firstname?: string;
+  lastname?: string;
+}
 
 
 export default function EditProfilePage() {
+const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [usernameError, setUsernameError] = useState<string | null>(null);
-  const [isFileTooLarge, setIsFileTooLarge] = useState(false);
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-const [currentUser, setCurrentUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>({
+const [currentUser, setCurrentUser] = useState<User | null>(null);
+const [profile, setProfile] = useState<Profile>({
   name: "",
- 
   email: "",
-})
-
-const router = useRouter();
-const [isSaving, setIsSaving] = useState(false);
-const [socialLinks, setSocialLinks] = useState([
+});
+const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
   {
-    id: null,                // for update
+    id: null,
     platform: "Instagram",
     url: "https://instagram.com/username",
     display_name: "@username",
     is_visible: true,
   },
-])
+]);
 
+
+const router = useRouter();
+const [isSaving, setIsSaving] = useState(false);
 const avatarInputRef = useRef<HTMLInputElement>(null)
 
 const handleSave = async () => {
@@ -82,15 +109,13 @@ const handleSave = async () => {
 
     if (res.ok) {
       const data = await res.json();
-      setProfile((prev: any) => ({ ...prev, ...data }));
+      setProfile((prev: Profile) => ({ ...prev, ...data }));
       toast.success("Profile saved!");
     } else if (res.status === 422) {
-      // Validation errors
       const err = await res.json();
       if (err.errors?.username) {
         toast.error("Username is already taken. Please choose another.");
       } else {
-        // Show the first validation error if any
         const firstError = Object.values(err.errors || {})[0]?.[0];
         toast.error(firstError || "Validation error. Please check your input.");
       }
@@ -102,7 +127,7 @@ const handleSave = async () => {
     console.error("Failed to save profile", err);
     toast.error("Failed to save profile. Username maybe already taken. Please try again.");
   }finally {
-    setIsSaving(false); // stop loading
+    setIsSaving(false);
   }
 };
 
@@ -126,24 +151,25 @@ useEffect(() => {
         const { profile, profile_image, email, display_name, username, name, firstname, lastname } = userData
         const socialLinks = userData?.profile?.social_links || []
 
-        setProfile((prev: any) => ({
-          ...prev,
-          ...profile,
-          profile_image,
-          display_name,
-          email,
-          username,
-          name,
-          firstname,
-          lastname,
-        }))
+       setProfile((prev: Profile) => ({
+        ...prev,
+        ...profile,
+        profile_image,
+        display_name,
+        email,
+        username,
+        name,
+        firstname,
+        lastname,
+      }))
 
-        setSocialLinks(socialLinks.map((link: any) => ({
-          ...link,
-          is_visible: !!link.is_visible,
-        })))
 
-        setCurrentUser(userData); // ✅ Fix: move here inside the if block
+     setSocialLinks(socialLinks.map((link: SocialLink) => ({
+      ...link,
+      is_visible: !!link.is_visible,
+    })))
+
+        setCurrentUser(userData);
       }
     } catch (error) {
       console.error("Error fetching profile:", error)
@@ -162,7 +188,6 @@ useEffect(() => {
       return;
     }
 
-    // If username is the same as the current user, skip check
     if (username === currentUser?.username) {
       setUsernameError(null);
       return;
@@ -175,21 +200,19 @@ useEffect(() => {
       if (res.ok) {
         setUsernameError("Username is already taken");
       } else {
-        setUsernameError(null); // Username is available
+        setUsernameError(null);
       }
-    } catch (err) {
-      setUsernameError(null); // Assume available if error
+    } catch {
+      setUsernameError(null);
     } finally {
       setIsCheckingUsername(false);
     }
   };
 
-  const timeout = setTimeout(() => {
-    checkUsername();
-  }, 500); // debounce delay
-
+  const timeout = setTimeout(checkUsername, 500);
   return () => clearTimeout(timeout);
-}, [profile.username]);
+}, [profile.username, currentUser?.username]);
+
 
 
 const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -202,16 +225,13 @@ useEffect(() => {
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   if (!token) {
-    router.push("/login"); // redirect if no token
+    router.push("/login");
   } else {
-    setIsAuthenticated(true); // allow access if token exists
+    setIsAuthenticated(true);
   }
 }, [router]);
 
 
-
-// ✅ ADD THIS LINE BEFORE THE RETURN
-// Show nothing while checking auth
 if (isAuthenticated === null) return null;
 if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
 
@@ -220,7 +240,6 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <Link href="/">
@@ -238,7 +257,6 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
           </div>
 
           <div className="space-y-8">
-            {/* Profile Picture */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -250,15 +268,13 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
           <div className="flex items-center gap-4">
             <Avatar className="w-20 h-20">
              
-            <AvatarImage
-              src={
-              previewURL ||
-                (profile.profile_image
-                  ? `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/${profile.profile_image}`
-                  : "/avatar.png")
-            }
+          <AvatarImage
+          src={
+            previewURL ||
+            (profile.profile_image ? `${process.env.NEXT_PUBLIC_IMAGE_URL}/${profile.profile_image}` : "/avatar.png")
+          }
+        />
 
-                          />
               <AvatarFallback className="text-lg">
                 {profile?.name?.[0] ?? ''}
               </AvatarFallback>
@@ -266,7 +282,6 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
 
 
             <div className="space-y-2">
-              {/* ✅ Hidden file input with ref */}
                 <input
                   type="file"
                   accept="image/png, image/jpeg"
@@ -275,18 +290,18 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
                     const file = e.target.files?.[0];
 
                     if (file) {
-                      const fileSizeMB = file.size / (1024 * 1024); // Convert bytes to MB
+                      const fileSizeMB = file.size / (1024 * 1024);
                       const validTypes = ["image/jpeg", "image/png"];
 
                       if (!validTypes.includes(file.type)) {
                         toast.error("Invalid file type. Only JPG and PNG are allowed.");
-                        e.target.value = ""; // Clear the input
+                        e.target.value = "";
                         return;
                       }
 
                       if (fileSizeMB > 5) {
                         toast.error("File size exceeds 5MB. Please choose a smaller image.");
-                        e.target.value = ""; // Clear the input
+                        e.target.value = "";
                         return;
                       }
 
@@ -315,7 +330,6 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
 
             </Card>
 
-            {/* Basic Information */}
             <Card>
               <CardHeader>
                 <CardTitle>Basic Information</CardTitle>
@@ -360,13 +374,24 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
                     {(process.env.NEXT_PUBLIC_FRONTEND_URL?.replace(/^https?:\/\//, "") ?? "localhost:3000") + "/"}
                   </span>
 
-                  <Input
-                    id="username"
-                    value={profile.username || ""}
-                    onChange={(e) => setProfile({ ...profile, username: e.target.value })}
-                    placeholder="username"
-                    className={usernameError ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
-                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                        id="username"
+                        value={profile.username || ""}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^a-zA-Z0-9_]/g, "").slice(0, 10);
+                          setProfile({ ...profile, username: value });
+                        }}
+                        placeholder="username"
+                        maxLength={15}
+                        className={usernameError ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""}
+                      />
+
+                    {isCheckingUsername && (
+                      <span className="text-sm text-gray-400">Checking...</span>
+                    )}
+                  </div>
+
                 </div>
                 {usernameError && (
                   <p className="text-red-500 text-sm mt-1">{usernameError}</p>
@@ -391,7 +416,6 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
               </CardContent>
             </Card>
 
-            {/* Contact Information */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -406,12 +430,15 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
                       <Mail className="w-4 h-4" />
                       Email
                     </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      defaultValue={profile.email}
-                      placeholder="your@email.com"
-                    />
+                 <Input
+                    id="email"
+                    type="email"
+                    value={profile.email || ""}
+                    placeholder="your@email.com"
+                    disabled
+                    className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                  />
+
                   </div>
                    <div>
                     <Label htmlFor="phone" className="flex items-center gap-2">
@@ -462,7 +489,6 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
               </CardContent>
             </Card>
 
-            {/* Social Links */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -489,72 +515,117 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
                 </CardTitle>
               </CardHeader>
             <CardContent>
-              {socialLinks.map((link, index) => (
-              <div key={index} className="mb-4 border p-4 rounded-md space-y-2 relative">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label>Platform</Label>
-                    <Input
-                      value={link.platform}
-                      onChange={(e) => {
-                        const updated = [...socialLinks]
-                        updated[index].platform = e.target.value
-                        setSocialLinks(updated)
-                      }}
-                      placeholder="e.g., Instagram"
-                    />
+              {socialLinks.map((link, index) => {
+                // Check if platform is a messaging app that needs phone number (INCLUDING VIBER)
+                const isMessagingApp = /^(whatsapp|whats\s*app|viber|kakaotalk|kakao\s*talk|wechat|we\s*chat|telegram)$/i.test(link.platform.trim());
+                
+                return (
+                  <div key={index} className="mb-4 border p-4 rounded-md space-y-2 relative">
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Platform</Label>
+                        <Input
+                          value={link.platform}
+                          onChange={(e) => {
+                            const updated = [...socialLinks];
+                            updated[index].platform = e.target.value;
+                            
+                            // Check if new platform is messaging app (INCLUDING VIBER)
+                            const newIsMessaging = /^(whatsapp|whats\s*app|viber|kakaotalk|kakao\s*talk|wechat|we\s*chat|telegram)$/i.test(e.target.value.trim());
+                            
+                            // Clear display_name and url if switching to/from messaging app
+                            if (newIsMessaging) {
+                              updated[index].display_name = "";
+                              updated[index].url = "";
+                            }
+                            
+                            setSocialLinks(updated);
+                          }}
+                          placeholder="e.g., Instagram, WhatsApp, Viber"
+                        />
+                      </div>
+                      <div>
+                        <Label>URL</Label>
+                        <Input
+                          value={link.url}
+                          onChange={(e) => {
+                            const updated = [...socialLinks];
+                            updated[index].url = e.target.value;
+                            setSocialLinks(updated);
+                          }}
+                          placeholder="https://instagram.com/username"
+                          disabled={isMessagingApp}
+                          className={isMessagingApp ? "bg-gray-100 cursor-not-allowed" : ""}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <Label>{isMessagingApp ? "Contact Number" : "Display Name"}</Label>
+                        <Input
+                          value={link.display_name}
+                          onChange={(e) => {
+                            const updated = [...socialLinks];
+                            
+                            if (isMessagingApp) {
+                              // Only allow digits for messaging apps
+                              const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+                              updated[index].display_name = digits;
+                              
+                              // Auto-generate URL based on platform (INCLUDING VIBER)
+                              const platform = link.platform.toLowerCase().replace(/\s+/g, "");
+                              if (digits) {
+                                if (platform.includes("whatsapp") || platform.includes("whats")) {
+                                  updated[index].url = `https://wa.me/${digits}`;
+                                } else if (platform.includes("viber")) {
+                                  updated[index].url = `viber://chat?number=${digits}`;
+                                } else if (platform.includes("telegram")) {
+                                  updated[index].url = `https://t.me/${digits}`;
+                                } else if (platform.includes("kakao")) {
+                                  updated[index].url = `https://open.kakao.com/o/${digits}`;
+                                } else if (platform.includes("wechat") || platform.includes("we")) {
+                                  updated[index].url = `weixin://dl/chat?${digits}`;
+                                }
+                              } else {
+                                updated[index].url = "";
+                              }
+                            } else {
+                              updated[index].display_name = e.target.value;
+                            }
+                            
+                            setSocialLinks(updated);
+                          }}
+                          placeholder={isMessagingApp ? "09125255222" : "@username"}
+                          maxLength={isMessagingApp ? 11 : undefined}
+                          inputMode={isMessagingApp ? "numeric" : "text"}
+                        />
+                        {isMessagingApp && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Enter phone number (URL will be generated automatically)
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={link.is_visible}
+                          onChange={() => {
+                            const updated = [...socialLinks];
+                            updated[index].is_visible = !updated[index].is_visible;
+                            setSocialLinks(updated);
+                            toast("Please save changes to update visibility.");
+                          }}
+                        />
+                        <span className="text-sm">Visible</span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <Label>URL</Label>
-                    <Input
-                      value={link.url}
-                      onChange={(e) => {
-                        const updated = [...socialLinks]
-                        updated[index].url = e.target.value
-                        setSocialLinks(updated)
-                      }}
-                      placeholder="https://instagram.com/username"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <Label>Display Name</Label>
-                    <Input
-                      value={link.display_name}
-                      onChange={(e) => {
-                        const updated = [...socialLinks]
-                        updated[index].display_name = e.target.value
-                        setSocialLinks(updated)
-                      }}
-                      placeholder="@username"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                 <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={link.is_visible}
-                  onChange={() => {
-                    const updated = [...socialLinks]
-                    updated[index].is_visible = !updated[index].is_visible
-                    setSocialLinks(updated)
-                    toast("Please save changes to update visibility.")
-                  }}
-                />
-                <span className="text-sm">Visible</span>
-              </div>
-            
-
-
-                </div>
-              </div>
-            ))}
-
+                );
+              })}
             </CardContent>
             </Card>
 
-            {/* Save Button */}
           <div className="flex justify-end">
            <Button
                 onClick={handleSave}

@@ -58,8 +58,8 @@ interface TemplateData {
     heading: string
     body: string
   }
-  sections?: any[]
-  [key: string]: any
+  sections?: Record<string, unknown>[]   // instead of any[]
+  [key: string]: unknown                 // instead of any
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL as string

@@ -24,9 +24,9 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
   const [loadingPreview, setLoadingPreview] = useState(false);
 
   const handlePreviewClick = () => {
-  setLoadingPreview(true);
-  router.push(`/template-by-id/${template.slug}`);
-};
+    setLoadingPreview(true);
+    router.push(`/template-by-id/${template.slug}`);
+  };
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -36,7 +36,7 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
   }, [])
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden">
+    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden flex flex-col">
       <div className="relative">
         {/* Template Preview or Thumbnail */}
         <div className="aspect-[3/4] bg-gray-100 overflow-hidden">
@@ -74,38 +74,37 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
         </div>
 
         {/* Discount Badge */}
-       {isPremium && hasDiscount && (
-        <div className="absolute top-3 right-3">
-          <Badge variant="destructive" className="bg-red-500">
-            -{template.discount}%
-          </Badge>
-        </div>
-      )}
-
+        {isPremium && hasDiscount && (
+          <div className="absolute top-3 right-3">
+            <Badge variant="destructive" className="bg-red-500">
+              -{template.discount}%
+            </Badge>
+          </div>
+        )}
 
         {/* Hover Overlay */}
-      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          variant="secondary"
-          disabled={loadingPreview}
-          onClick={handlePreviewClick}
-          className="flex items-center gap-1"
-        >
-          {loadingPreview ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Eye className="w-4 h-4" />
-          )}
-          <span>Preview</span>
-        </Button>
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              disabled={loadingPreview}
+              onClick={handlePreviewClick}
+              className="flex items-center gap-1"
+            >
+              {loadingPreview ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Eye className="w-4 h-4" />
+              )}
+              <span>Preview</span>
+            </Button>
+          </div>
+        </div>
       </div>
-    </div>
 
-      </div>
-
-      <CardContent className="p-4">
+      {/* Make content stretch and push footer down */}
+      <CardContent className="p-4 flex-grow">
         <div className="flex items-start justify-between mb-2">
           <h3 className="font-semibold text-lg text-gray-900 group-hover:text-purple-600 transition-colors">
             {template.name}
@@ -123,52 +122,55 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
         </div>
       </CardContent>
 
-      <CardFooter className="p-4 pt-0">
+      {/* Footer aligned to bottom */}
+      <CardFooter className="p-4 pt-0 mt-auto">
         <div className="flex items-center justify-between w-full">
           {/* 👤 Author Info */}
-        <div className="flex items-center gap-2">
-        {template.user?.avatar_url ? (
-          <img
-            src={template.user.avatar_url}
-            alt={template.user.name || "Author"}
-            className="w-6 h-6 rounded-full object-cover"
-            onError={(e) => {
-              e.currentTarget.onerror = null
-              e.currentTarget.style.display = "none" // hide broken image
-            }}
-          />
-        ) : (
-          <UserIcon size={24} className="text-white" />
-        )}
-      </div>
+          <div className="flex items-center gap-2">
+            {template.user?.avatar_url ? (
+              <img
+                src={template.user.avatar_url}
+                alt={template.user.name || "Author"}
+                className="w-6 h-6 rounded-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.onerror = null
+                  e.currentTarget.style.display = "none" // hide broken image
+                }}
+              />
+            ) : (
+              <UserIcon size={24} className="text-gray-400" />
+            )}
+          </div>
 
           {/* 📊 Stats + Price + Button */}
-          <div className="flex items-center gap-4">
-            
-
-            {/* Price & Button */}
-            <div className="flex items-center gap-2">
-              {isPremium ? (
-                hasDiscount ? (
-                  <>
-                    <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
-                    <span className="text-sm text-gray-500 line-through">
-                      ₱{template.original_price}
-                    </span>
-                  </>
-                ) : (
+          <div className="flex items-center gap-2">
+            {isPremium ? (
+              hasDiscount ? (
+                <>
                   <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
-                )
+                  <span className="text-sm text-gray-500 line-through">
+                    ₱{template.original_price}
+                  </span>
+                </>
               ) : (
-                <span className="text-lg font-bold text-green-600">Free</span>
-              )}
+                <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
+              )
+            ) : (
+              <span className="text-lg font-bold text-green-600">Free</span>
+            )}
 
-              <Link href={`/template-by-id/${template.slug}`}>
-                <Button size="sm" className={isPremium ? "bg-gradient-to-r from-purple-600 to-pink-600" : ""}>
-                  {isPremium ? "Get Premium" : "Use Free"}
-                </Button>
-              </Link>
-            </div>
+            <Link href={`/template-by-id/${template.slug}`}>
+              <Button
+                size="sm"
+                className={`${
+                  isPremium
+                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                    : "bg-black text-white"
+                }`}
+              >
+                {isPremium ? "Get Premium" : "Use Free"}
+              </Button>
+            </Link>
           </div>
         </div>
       </CardFooter>

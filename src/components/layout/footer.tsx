@@ -13,18 +13,7 @@ interface FooterSection {
 const footerSections: FooterSection[] = [
   {
     title: "Product",
-    links: [
-      { href: "#", label: "Features" },
-      { href: "#", label: "Templates" },
-      { href: "#", label: "Pricing" },
-    ],
-  },
-  {
-    title: "Support",
-    links: [
-      { href: "#", label: "Help Center" },
-      { href: "#", label: "Contact Us" },
-    ],
+    links: [{ href: "/templates", label: "Templates" }],
   },
   {
     title: "User Agreement",
@@ -35,19 +24,21 @@ const footerSections: FooterSection[] = [
 export function Footer() {
   return (
     <footer className="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 text-white py-12 px-4">
-      <div className="container mx-auto">
-        <div className="grid md:grid-cols-4 gap-8">
-          <div>
+      <div className="container mx-auto flex flex-col items-center text-center">
+        {/* Grid but centered */}
+        <div className="grid md:grid-cols-3 gap-8 justify-items-center w-full max-w-4xl">
+          {/* Logo + tagline */}
+          <div className="flex flex-col items-center text-center">
             <div className="mb-4">
               <Logo variant="dark" />
             </div>
-            <p className="text-purple-200/80">
+            <p className="text-purple-200/80 max-w-sm">
               Create and share your digital profile with the world. One tap, endless possibilities.
             </p>
           </div>
 
           {footerSections.map((section) => (
-            <div key={section.title}>
+            <div key={section.title} className="flex flex-col items-center text-center">
               <h4 className="font-semibold mb-4">{section.title}</h4>
               <ul className="space-y-2 text-purple-200/70">
                 {section.links.map((link) => (
@@ -69,7 +60,8 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="border-t border-white/20 mt-8 pt-8 text-center text-purple-200/60">
+        {/* Divider + copyright */}
+        <div className="border-t border-white/20 mt-8 pt-8 text-purple-200/60 text-center w-full">
           <p>&copy; 2025 JuanTap. All rights reserved.</p>
         </div>
       </div>

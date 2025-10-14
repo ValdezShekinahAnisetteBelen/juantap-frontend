@@ -5,14 +5,7 @@ import { useEffect, useState } from "react"
 import { PreviewRenderer } from "@/components/templates/PreviewRenderer"
 // ✅ Import your custom Loading component
 import { Loading } from "@/components/loading"
-
-
-interface SocialLink {
-  id: string
-  platform: string
-  username: string
-  url: string
-}
+import type { Template } from "@/types/template"
 
 interface UserData {
   id: number
@@ -29,7 +22,7 @@ interface UserData {
 
 export default function PublicProfilePage() {
   const { username } = useParams<{ username: string }>()
-  const [templateData, setTemplateData] = useState<any | null>(null)
+  const [templateData, setTemplateData] = useState<Template | null>(null)
   const [userData, setUserData] = useState<UserData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -45,7 +38,7 @@ export default function PublicProfilePage() {
       )
       const user = userRes.ok ? await userRes.json() : null
 
-      let finalTemplate = null
+      let finalTemplate: Template | null = null
       if (usedTemplates?.length) {
         const t = usedTemplates[0]
 

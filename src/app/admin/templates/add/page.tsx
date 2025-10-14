@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import Link from "next/link"  
-import { ArrowLeft } from "lucide-react" 
+import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { useRouter } from "next/navigation"
 import { MinimalClean } from "@/components/template-previews/minimal-clean-template"
@@ -75,7 +75,14 @@ const defaultTemplate: TemplateData = {
   downloads: 0,
   connectStyle: "grid",
   socialStyle: "default",
-};
+}
+
+type TemplatePayload = Omit<TemplateData, "id" | "features" | "colors" | "fonts" | "tags"> & {
+  features: string
+  colors: string
+  fonts: string
+  tags: string
+}
 
 export default function AddTemplatePage() {
   const [template, setTemplate] = useState<TemplateData>(defaultTemplate)
@@ -84,7 +91,7 @@ export default function AddTemplatePage() {
   const [saving, setSaving] = useState(false)
   const router = useRouter()
 
-  const updateTemplate = (field: keyof TemplateData, value: any) => {
+  const updateTemplate = <K extends keyof TemplateData>(field: K, value: TemplateData[K]) => {
     setTemplate((prev) => ({
       ...prev,
       [field]: value,
@@ -158,77 +165,71 @@ export default function AddTemplatePage() {
     }
   }
 
-const saveTemplate = async () => {
-  if (!template.name || !template.description) {
-    alert("Name and description are required!");
-    return;
-  }
+  const saveTemplate = async () => {
+    if (!template.name || !template.description) {
+      alert("Name and description are required!")
+      return
+    }
 
-  setSaving(true);
+    setSaving(true)
 
-  try {
-    const slug = template.slug || generateSlug(template.name);
-    const now = new Date().toISOString();
+    try {
+      const slug = template.slug || generateSlug(template.name)
+      const now = new Date().toISOString()
 
-    // Prepare payload WITHOUT id
-    const payload: any = {
-      ...template,
-      slug,
-      created_at: template.created_at || now,
-      updated_at: now,
-    };
+      const payload: TemplatePayload = {
+        ...template,
+        slug,
+        created_at: template.created_at || now,
+        updated_at: now,
+        features: JSON.stringify(template.features),
+        colors: JSON.stringify(template.colors),
+        fonts: JSON.stringify(template.fonts),
+        tags: JSON.stringify(template.tags),
+      }
 
-    // ❌ Remove id before sending to backend
-    delete payload.id;
+      console.log("[v2] Sending template data to Laravel backend:", payload)
 
-    // Convert arrays/objects to JSON strings (Laravel expects strings)
-    if (payload.features) payload.features = JSON.stringify(payload.features);
-    if (payload.colors) payload.colors = JSON.stringify(payload.colors);
-    if (payload.fonts) payload.fonts = JSON.stringify(payload.fonts);
-    if (payload.tags) payload.tags = JSON.stringify(payload.tags);
-
-    console.log("[v2] Sending template data to Laravel backend:", payload);
-
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/templates/store`,
-      payload,
-      {
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/templates/store`, payload, {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
+      })
+
+      console.log("[v2] Backend response:", response.data)
+
+      setTemplate({
+        ...defaultTemplate,
+        created_at: now,
+        updated_at: now,
+      })
+
+      alert("Template saved successfully!")
+      router.push("/admin/templates")
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("[v2] Error saving template:", error.message)
+        alert(error.message)
+      } else {
+        console.error("[v2] Unknown error saving template:", error)
+        alert("Failed to save template. Slug field is required/Slug has already been taken.")
       }
-    );
-
-    console.log("[v2] Backend response:", response.data);
-
-    // Reset form with valid defaults
-    setTemplate({
-      ...defaultTemplate,
-      created_at: now,
-      updated_at: now,
-    });
-
-    alert("Template saved successfully!");
-    router.push("/admin/templates")
-  } catch (error: any) {
-    console.error("[v2] Error saving template:", error);
-    alert("Failed to save template. Slug field is required/Slug has already been taken.");
-  } finally {
-    setSaving(false);
+    } finally {
+      setSaving(false)
+    }
   }
-};
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-           <Link href="/admin/templates">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Templates
-              </Button>
-            </Link>
+          <Link href="/admin/templates">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Templates
+            </Button>
+          </Link>
           <h1 className="text-3xl font-bold text-gray-900">Add New Template</h1>
           <p className="text-gray-600 mt-2">Create and customize a new business card template</p>
         </div>
@@ -304,51 +305,51 @@ const saveTemplate = async () => {
                     </Select>
                   </div>
                 </div>
-            {template.category === "premium" && (
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="price">Price (auto-calculated)</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={template.price}
-                    disabled
-                    className="bg-gray-100 cursor-not-allowed"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="original_price">Original Price</Label>
-                  <Input
-                    id="original_price"
-                    type="number"
-                    value={template.original_price || ""}
-                    onChange={(e) => {
-                      const original = Number(e.target.value) || 0
-                      updateTemplate("original_price", original)
-                      const calculated = original - (original * (template.discount || 0) / 100)
-                      updateTemplate("price", calculated)
-                    }}
-                    placeholder="399"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="discount">Discount %</Label>
-                  <Input
-                    id="discount"
-                    type="number"
-                    value={template.discount || ""}
-                    onChange={(e) => {
-                      const discount = Number(e.target.value) || 0
-                      updateTemplate("discount", discount)
-                      const calculated = (template.original_price || 0) - ((template.original_price || 0) * discount / 100)
-                      updateTemplate("price", calculated)
-                    }}
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-            )}
-
+                {template.category === "premium" && (
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="price">Price (auto-calculated)</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        value={template.price}
+                        disabled
+                        className="bg-gray-100 cursor-not-allowed"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="original_price">Original Price</Label>
+                      <Input
+                        id="original_price"
+                        type="number"
+                        value={template.original_price || ""}
+                        onChange={(e) => {
+                          const original = Number(e.target.value) || 0
+                          updateTemplate("original_price", original)
+                          const calculated = original - (original * (template.discount || 0)) / 100
+                          updateTemplate("price", calculated)
+                        }}
+                        placeholder="399"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="discount">Discount %</Label>
+                      <Input
+                        id="discount"
+                        type="number"
+                        value={template.discount || ""}
+                        onChange={(e) => {
+                          const discount = Number(e.target.value) || 0
+                          updateTemplate("discount", discount)
+                          const calculated =
+                            (template.original_price || 0) - ((template.original_price || 0) * discount) / 100
+                          updateTemplate("price", calculated)
+                        }}
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -636,8 +637,8 @@ const saveTemplate = async () => {
                 <p className="text-sm text-gray-600">Live preview with design customizations</p>
               </CardHeader>
               <CardContent>
-                <div className="bg-gray-100 p-4 rounded-lg">
-                  <div className="scale-75 origin-top">
+                <div className="bg-gray-100 p-2 sm:p-4 rounded-lg flex justify-center">
+                  <div className="scale-100 sm:scale-90 lg:scale-75 origin-top">
                     <MinimalClean
                       socialStyle={template.socialStyle}
                       connectStyle={template.connectStyle}

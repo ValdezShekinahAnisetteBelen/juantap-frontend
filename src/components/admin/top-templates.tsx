@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Download, Eye, ArrowUp, ArrowDown } from "lucide-react"
-import { Button } from "@/components/ui/button" // if you're using shadcn/ui
+import { Button } from "@/components/ui/button"
 
 const ITEMS_PER_PAGE = 7
 
@@ -14,10 +14,7 @@ export function TopTemplates() {
 
   const totalPages = Math.ceil(topTemplates.length / ITEMS_PER_PAGE)
 
-  const paginatedTemplates = topTemplates.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
-  )
+  const paginatedTemplates = topTemplates.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 
   useEffect(() => {
     async function fetchTopTemplates() {
@@ -42,7 +39,7 @@ export function TopTemplates() {
         data = data.sort((a, b) => (b.unlocks ?? 0) - (a.unlocks ?? 0))
 
         setTopTemplates(data)
-        setCurrentPage(1) // reset to first page on load
+        setCurrentPage(1)
       } catch (err) {
         console.error("Failed to fetch top templates:", err)
         setTopTemplates([])
@@ -61,39 +58,40 @@ export function TopTemplates() {
   }
 
   return (
-    <Card>
+    <Card className="bg-white/90 backdrop-blur-xl border border-purple-200/50 shadow-lg relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-pink-400/30 to-purple-400/30 -z-10" />
       <CardHeader>
-        <CardTitle>Top Performing Templates</CardTitle>
+        <CardTitle className="text-purple-900">Top Performing Templates</CardTitle>
       </CardHeader>
       <CardContent>
         {paginatedTemplates.length === 0 ? (
-          <p className="text-sm text-gray-500">No data available</p>
+          <p className="text-sm text-purple-700">No data available</p>
         ) : (
           <div className="space-y-4">
             {paginatedTemplates.map((template, index) => (
               <div
                 key={template.id}
-                className="flex items-center space-x-4 p-4 border rounded-lg"
+                className="flex items-center space-x-4 p-4 rounded-lg bg-gradient-to-r from-purple-100/80 to-pink-100/80 border border-purple-200/50 hover:border-purple-300/70 transition-all duration-300 hover:shadow-md"
               >
-                <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold">
+                <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full text-sm font-semibold">
                   {(currentPage - 1) * ITEMS_PER_PAGE + index + 1}
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2">
-                    <h3 className="text-sm font-medium text-gray-900 truncate">
-                      {template.name}
-                    </h3>
+                    <h3 className="text-sm font-medium text-purple-900 truncate">{template.name}</h3>
                     <Badge
-                      variant={
-                        template.category === "Premium" ? "default" : "secondary"
+                      className={
+                        template.category === "Premium"
+                          ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0"
+                          : "bg-purple-200/70 text-purple-900 border-purple-300/50"
                       }
                     >
                       {template.category}
                     </Badge>
                   </div>
 
-                  <div className="flex items-center space-x-4 mt-1 text-xs text-gray-500">
+                  <div className="flex items-center space-x-4 mt-1 text-xs text-purple-700">
                     <div className="flex items-center space-x-1">
                       <Download className="h-3 w-3" />
                       <span>{(template.unlocks ?? 0).toLocaleString()}</span>
@@ -106,7 +104,7 @@ export function TopTemplates() {
 
                     {Number(template.revenue) > 0 && (
                       <div className="flex items-center space-x-1">
-                        <span className="text-xs font-bold">₱</span>
+                        <span className="text-xs font-bold text-purple-900">₱</span>
                         <span>
                           {Number(template.revenue).toLocaleString("en-PH", {
                             minimumFractionDigits: 2,
@@ -127,7 +125,6 @@ export function TopTemplates() {
               </div>
             ))}
 
-            {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className="flex justify-between items-center pt-4">
                 <Button
@@ -135,10 +132,11 @@ export function TopTemplates() {
                   size="sm"
                   onClick={handlePrev}
                   disabled={currentPage === 1}
+                  className="bg-purple-100/70 border-purple-300/50 text-purple-900 hover:bg-purple-200/70 disabled:opacity-50"
                 >
                   Previous
                 </Button>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-purple-700">
                   Page {currentPage} of {totalPages}
                 </span>
                 <Button
@@ -146,6 +144,7 @@ export function TopTemplates() {
                   size="sm"
                   onClick={handleNext}
                   disabled={currentPage === totalPages}
+                  className="bg-purple-100/70 border-purple-300/50 text-purple-900 hover:bg-purple-200/70 disabled:opacity-50"
                 >
                   Next
                 </Button>

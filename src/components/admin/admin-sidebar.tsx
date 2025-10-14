@@ -45,12 +45,12 @@ export function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
     { name: "Users", href: "/admin/users", icon: Users },
   ];
 
-  const getProfileImageUrl = (path?: string) => {
-    if (!path) return "/placeholder.svg?height=40&width=40";
-    if (path.startsWith("http")) return path;
-    return `${process.env.NEXT_PUBLIC_IMAGE_URL}/storage/${path}`;
-  };
-
+ const getProfileImageUrl = (path?: string) => {
+  if (!path) return "/placeholder.svg?height=40&width=40";
+  if (path.startsWith("http")) return path;
+  // Path already includes 'avatars/' prefix from backend
+  return `${process.env.NEXT_PUBLIC_IMAGE_URL}/${path}`;
+};
   const fetchUserData = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -147,7 +147,7 @@ export function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
               variant="ghost"
               size="sm"
               onClick={() => setCollapsed(!collapsed)}
-              className="p-1.5"
+              className="p-1.5 hidden md:flex"
             >
               {collapsed ? (
                 <ChevronRight className="h-4 w-4" />
@@ -171,7 +171,7 @@ export function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 overflow-y-auto">
+        <nav className="flex-1 p-4">
           <ul className="space-y-2">
             {navigationItems.map((item) => {
               const isActive = pathname === item.href;
@@ -180,7 +180,10 @@ export function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
                   <Link
                     href={item.href}
                     className={cn(
-                      "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      "flex items-center rounded-lg text-sm font-medium transition-colors",
+                      collapsed 
+                        ? "justify-center p-3" 
+                        : "space-x-3 px-3 py-2",
                       isActive
                         ? "bg-blue-50 text-blue-700 border border-blue-200"
                         : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
@@ -207,11 +210,17 @@ export function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
 
         {/* Footer: Profile + Logout */}
         <div className="border-t border-gray-200 p-4">
+          {/* Profile Section */}
           <div
-            className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition"
+            className={cn(
+              "flex items-center cursor-pointer hover:bg-gray-50 rounded-lg transition",
+              collapsed 
+                ? "justify-center p-2" 
+                : "space-x-3 p-2"
+            )}
             onClick={() => setProfileModalOpen(true)}
           >
-            <Avatar className="h-8 w-8">
+            <Avatar className="h-8 w-8 flex-shrink-0">
               <AvatarImage src={getProfileImageUrl(user?.profile_image)} />
               <AvatarFallback>
                 {user?.name
@@ -234,15 +243,21 @@ export function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
             )}
           </div>
 
+          {/* Logout Button - Positioned below profile */}
           <div className="mt-3">
             <Button
               variant="ghost"
               size="sm"
-              className="w-full flex items-center justify-center"
+              className={cn(
+                "w-full flex items-center transition-all",
+                collapsed 
+                  ? "justify-center p-2" 
+                  : "justify-start px-3 py-2"
+              )}
               onClick={handleLogout}
             >
-              <LogOut className="h-4 w-4 mr-1" />
-              {!collapsed && "Logout"}
+              <LogOut className="h-4 w-4 flex-shrink-0" />
+              {!collapsed && <span className="ml-2">Logout</span>}
             </Button>
           </div>
         </div>

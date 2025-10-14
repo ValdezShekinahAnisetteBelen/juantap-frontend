@@ -14,7 +14,7 @@ export default function ProfileNotFound() {
         <div className="mb-8">
           <UserX className="w-24 h-24 text-gray-300 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile Not Found</h1>
-          <p className="text-gray-600 mb-6">The profile you're looking for doesn't exist or may have been removed.</p>
+          <p className="text-gray-600 mb-6">The profile you&apos;re looking for doesn&apos;t exist or may have been removed.</p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

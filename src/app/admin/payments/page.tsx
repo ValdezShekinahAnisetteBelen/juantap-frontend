@@ -3,13 +3,12 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Loader2 } from "lucide-react"
-import { toast } from "sonner"
 import { DataTable } from "@/components/ui/data-table"
-import { columns, Payment } from "./columns"
-const API_URL = process.env.NEXT_PUBLIC_API_URL! 
+import { columns, type Payment } from "./columns"
+const API_URL = process.env.NEXT_PUBLIC_API_URL!
 
 export default function AdminPaymentsPage() {
-const [payments, setPayments] = useState<Payment[]>([])
+  const [payments, setPayments] = useState<Payment[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -19,13 +18,11 @@ const [payments, setPayments] = useState<Payment[]>([])
   const fetchPayments = async () => {
     setIsLoading(true)
     try {
-     const res = await fetch(`${API_URL}/admin/payments`, {
+      const res = await fetch(`${API_URL}/admin/payments`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       })
       const data = await res.json()
       setPayments(data)
-    } catch (error) {
-      toast.error("Failed to fetch payments")
     } finally {
       setIsLoading(false)
     }
@@ -44,11 +41,7 @@ const [payments, setPayments] = useState<Payment[]>([])
               <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
             </div>
           ) : (
-           <DataTable 
-              columns={columns} 
-              data={payments} 
-              refreshData={fetchPayments} 
-            />
+            <DataTable columns={columns} data={payments} refreshData={fetchPayments} />
           )}
         </CardContent>
       </Card>

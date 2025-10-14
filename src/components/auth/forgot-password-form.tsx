@@ -88,10 +88,14 @@ export function ForgotPasswordForm() {
               <CheckCircle className="w-6 h-6 text-green-600" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Check your email</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              We've sent a password reset link to <strong>{formData.email}</strong>
+           <p className="text-sm text-gray-600 mb-4">
+              We&apos;ve sent a password reset link to <strong>{formData.email}</strong>
             </p>
-            <p className="text-xs text-gray-500">Didn't receive the email? Check your spam folder or try again.</p>
+
+           <p className="text-xs text-gray-500">
+              Didn&apos;t receive the email? Check your spam folder or try again.
+            </p>
+
           </div>
         </CardContent>
       </Card>

@@ -62,7 +62,9 @@ export function MinimalClean({
     handle: "@username",
     bio: "this is bui",
     email: "admin.example@gmail.com",
-    socialLinks: [{ id: "instagram", platform: "instagram", username: "instagram_account", url: "https://instagram.com/2eub2e" }],
+    socialLinks: [
+      { id: "instagram", platform: "instagram", username: "instagram_account", url: "https://instagram.com/2eub2e" },
+    ],
   }
 
   const profileUrl = "https://example.com/example_displayname"
@@ -122,25 +124,25 @@ export function MinimalClean({
   }
 
   return (
-    <div className="w-full flex justify-center p-6" style={{ backgroundColor: "#f9fafb" }}>
+    <div className="w-full flex justify-center p-2 sm:p-6" style={{ backgroundColor: "#f9fafb" }}>
       <div
-        className="w-full max-w-lg shadow-lg rounded-2xl overflow-hidden flex flex-col"
+        className="w-full max-w-sm sm:max-w-lg shadow-lg rounded-2xl overflow-hidden flex flex-col"
         style={{
           backgroundColor: colors.background,
           fontFamily: fonts.body,
         }}
       >
         <div
-          className="w-full h-32"
+          className="w-full h-24 sm:h-32"
           style={{
             background: `linear-gradient(135deg, ${colors.accent}, ${colors.primary})`,
           }}
         ></div>
 
         {/* Avatar & Bio */}
-        <div className="relative flex flex-col items-center mt-6 px-6">
+        <div className="relative flex flex-col items-center mt-4 sm:mt-6 px-4 sm:px-6">
           <div
-            className="w-28 h-28 rounded-full border-4 shadow-lg overflow-hidden bg-gray-200 flex items-center justify-center -mt-14"
+            className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-4 shadow-lg overflow-hidden bg-gray-200 flex items-center justify-center -mt-10 sm:-mt-14"
             style={{ borderColor: colors.background }}
           >
             <img
@@ -150,7 +152,7 @@ export function MinimalClean({
             />
           </div>
           <h1
-            className="mt-4 text-xl font-bold"
+            className="mt-3 sm:mt-4 text-lg sm:text-xl font-bold"
             style={{
               fontFamily: fonts.heading,
               color: colors.text,
@@ -159,7 +161,7 @@ export function MinimalClean({
             {staticProfile.displayName}
           </h1>
           <div
-            className="flex flex-wrap items-center gap-3 text-xs mt-2 justify-center"
+            className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs mt-2 justify-center"
             style={{
               color: colors.secondary,
               fontFamily: fonts.body, // Added explicit body font to location/handle text
@@ -171,7 +173,7 @@ export function MinimalClean({
             <span style={{ color: colors.accent }}>{staticProfile.handle}</span>
           </div>
           <p
-            className="text-sm text-center mt-1"
+            className="text-xs sm:text-sm text-center mt-1"
             style={{
               color: colors.secondary,
               fontFamily: fonts.body, // Added explicit body font to bio text
@@ -182,9 +184,9 @@ export function MinimalClean({
         </div>
 
         {/* Contact */}
-        <div className="p-6 space-y-4">
+        <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
           <h2
-            className="text-sm font-semibold uppercase"
+            className="text-xs sm:text-sm font-semibold uppercase"
             style={{
               color: colors.secondary,
               fontFamily: fonts.heading,
@@ -193,29 +195,30 @@ export function MinimalClean({
             Contact
           </h2>
           <div
-            className="flex justify-between items-center rounded-lg p-3 text-sm"
+            className="flex justify-between items-center rounded-lg p-2 sm:p-3 text-xs sm:text-sm"
             style={{
               backgroundColor: `${colors.primary}10`,
               fontFamily: fonts.body, // Added explicit body font to contact section
             }}
           >
-            <div className="flex items-center gap-2" style={{ color: colors.text }}>
-              <Mail size={16} style={{ color: colors.accent }} /> {staticProfile.email}
+            <div className="flex items-center gap-2 truncate" style={{ color: colors.text }}>
+              <Mail size={14} className="sm:w-4 sm:h-4 flex-shrink-0" style={{ color: colors.accent }} />
+              <span className="truncate">{staticProfile.email}</span>
             </div>
             <button
-              className="hover:opacity-70"
+              className="hover:opacity-70 flex-shrink-0"
               style={{ color: colors.secondary }}
               onClick={() => navigator.clipboard.writeText(staticProfile.email)}
             >
-              <Copy size={16} />
+              <Copy size={14} className="sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>
 
         {/* Social Links */}
-        <div className="px-6 pb-6">
+        <div className="px-4 sm:px-6 pb-4 sm:pb-6">
           <h2
-            className="text-sm font-semibold uppercase mb-3"
+            className="text-xs sm:text-sm font-semibold uppercase mb-3"
             style={{
               color: colors.secondary,
               fontFamily: fonts.heading,
@@ -256,7 +259,7 @@ export function MinimalClean({
 
         {/* Bottom Actions */}
         <div
-          className="flex justify-around border-t p-4"
+          className="flex justify-around border-t p-3 sm:p-4"
           style={{
             backgroundColor: `${colors.primary}08`,
             borderColor: `${colors.primary}20`,
@@ -265,17 +268,17 @@ export function MinimalClean({
         >
           <button
             onClick={() => setIsQRModalOpen(true)}
-            className="flex flex-col items-center text-sm hover:opacity-70"
+            className="flex flex-col items-center text-xs sm:text-sm hover:opacity-70"
             style={{ color: colors.text }}
           >
-            <QrCode className="w-5 h-5 mb-1" style={{ color: colors.accent }} /> QR Code
+            <QrCode className="w-4 h-4 sm:w-5 sm:h-5 mb-1" style={{ color: colors.accent }} /> QR Code
           </button>
           <button
             onClick={handleShare}
-            className="flex flex-col items-center text-sm hover:opacity-70"
+            className="flex flex-col items-center text-xs sm:text-sm hover:opacity-70"
             style={{ color: colors.text }}
           >
-            <Share2 className="w-5 h-5 mb-1" style={{ color: colors.accent }} /> Share
+            <Share2 className="w-4 h-4 sm:w-5 sm:h-5 mb-1" style={{ color: colors.accent }} /> Share
           </button>
         </div>
       </div>
