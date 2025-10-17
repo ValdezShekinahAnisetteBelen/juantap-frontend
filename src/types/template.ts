@@ -19,6 +19,8 @@ export interface User {
   profile_image?: string
   profile_image_url?: string
 
+   social_links?: SocialLink[] 
+   
   profile?: {
     bio?: string
     phone?: string

@@ -2,13 +2,13 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   eslint: {
-    ignoreDuringBuilds: true, 
+    ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true, 
+    ignoreBuildErrors: true,
   },
   images: {
-    domains: ['localhost', '127.0.0.1'],
+    domains: ['localhost', '127.0.0.1', 'juantap.info'],
     remotePatterns: [
       {
         protocol: 'http',
@@ -33,9 +33,19 @@ const nextConfig: NextConfig = {
         hostname: '127.0.0.1',
         port: '8000',
         pathname: '/defaults/**',
-      }
-    ]
-  }
+      },
+      {
+        protocol: 'https',
+        hostname: 'juantap.info',
+        pathname: '/avatars/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'juantap.info',
+        pathname: '/defaults/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;

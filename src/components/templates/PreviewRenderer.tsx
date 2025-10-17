@@ -186,6 +186,65 @@ export const PreviewRenderer: React.FC<PreviewRendererProps> = ({ template, user
 
   const avatarUrl = user?.avatar_url || null;
 
+  const handleSaveContact = () => {
+  if (!user) return;
+
+  // Get user's social links (assuming your API returns user.social_links)
+  let socials: any[] = [];
+
+// If it's already an array, use it directly
+if (Array.isArray(user?.social_links)) {
+  socials = user.social_links;
+}
+// If it's a JSON string (like '["..."]'), parse it
+else if (typeof user?.social_links === "string") {
+  try {
+    socials = JSON.parse(user.social_links);
+  } catch (err) {
+    socials = [];
+  }
+}
+// If it's stored under user.profile.socialLinks, use that instead
+else if (Array.isArray(user?.profile?.socialLinks)) {
+  socials = user.profile.socialLinks;
+}
+
+
+  // Convert each social link to a vCard line
+  const socialFields = socials
+    .map(
+      (s: any) =>
+        `X-SOCIALPROFILE;TYPE=${(s.platform || "social").toLowerCase()}:${s.url}`
+    )
+    .join("\n");
+
+  // Construct the vCard data
+  const vcardData = `
+BEGIN:VCARD
+VERSION:3.0
+FN:${user.display_name || user.name || user.username || ""}
+TEL;TYPE=CELL:${user.profile?.phone || ""}
+EMAIL;TYPE=INTERNET:${user.email || ""}
+URL:${user.profile?.website || ""}
+ADR;TYPE=HOME:;;${user.profile?.location || ""};;;
+NOTE:${user.profile?.bio || ""}
+${socialFields}
+END:VCARD
+  `.trim();
+
+  // Create and trigger download
+  const blob = new Blob([vcardData], { type: "text/vcard" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `${user.display_name || user.username || "contact"}.vcf`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+
+  toast.success("Contact saved to phone book!");
+};
+
+
+
   return (
     <div className="w-full flex justify-center px-4 py-6 sm:px-6" style={{ backgroundColor: "#f9fafb" }}>
       <div className="w-full max-w-lg shadow-lg rounded-2xl overflow-hidden flex flex-col mx-auto"
@@ -425,6 +484,16 @@ export const PreviewRenderer: React.FC<PreviewRendererProps> = ({ template, user
             <Share2 className="w-5 h-5 mb-1" style={{ color: template?.colors?.accent }} />
             <span className="whitespace-nowrap">Share</span>
           </button>
+
+          <button
+            onClick={handleSaveContact}
+            className="flex flex-col items-center text-sm hover:opacity-70"
+            style={{ color: template?.colors?.text }}
+          >
+            <Download className="w-5 h-5 mb-1" style={{ color: template?.colors?.accent }} />
+            <span className="whitespace-nowrap">Save Contact</span>
+          </button>
+
         </div>
       </div>
 
