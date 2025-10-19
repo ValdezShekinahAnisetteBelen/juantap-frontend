@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react" 
 import { MinimalClean } from "@/components/template-previews/minimal-clean-template"
+import { toast } from "sonner"
 
 type Template = {
   id: number
@@ -60,7 +61,7 @@ export default function EditTemplatePage() {
         })
       } catch (err) {
         console.error("❌ Failed to fetch template:", err)
-        alert("Failed to load template.")
+        toast.error("Failed to load template.")
       } finally {
         setLoading(false)
       }
@@ -95,11 +96,11 @@ export default function EditTemplatePage() {
       }
     );
 
-    alert("Template updated successfully!");
+    toast.success("Template updated successfully!")
     router.push("/admin/templates");
   } catch (err: any) {
     console.error("❌ Failed to update template:", err.response?.data || err);
-    alert("Error saving template.");
+    toast.error("Error saving template.")
   } finally {
     setSaving(false);
   }
@@ -211,54 +212,72 @@ export default function EditTemplatePage() {
 
         {/* Show pricing fields ONLY if Premium */}
         {template.is_premium && (
-          <>
-            <div>
-              <Label>Price (auto-calculated)</Label>
-              <Input
-                type="number"
-                value={template.price || ""}
-                disabled
-                className="bg-gray-100 cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <Label>Original Price</Label>
-              <Input
-                type="number"
-                value={template.original_price || ""}
-                onChange={(e) => {
-                  const original = Number(e.target.value) || 0;
-                  const discount = Number(template.discount) || 0;
-                  const calculated = original - (original * discount) / 100;
+            <>
+              <div>
+                <Label>Price (auto-calculated)</Label>
+                <Input
+                  type="text"
+                  value={
+                    template.price
+                      ? `₱${Number(template.price).toLocaleString("en-PH", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`
+                      : ""
+                  }
+                  disabled
+                  className="bg-gray-100 cursor-not-allowed"
+                />
+              </div>
 
-                  setTemplate({
-                    ...template,
-                    original_price: original,
-                    price: calculated,
-                  });
-                }}
-              />
-            </div>
-            <div>
-              <Label>Discount (%)</Label>
-              <Input
-                type="number"
-                value={template.discount || ""}
-                onChange={(e) => {
-                  const discount = Number(e.target.value) || 0;
-                  const original = Number(template.original_price) || 0;
-                  const calculated = original - (original * discount) / 100;
+              <div>
+                <Label>Original Price</Label>
+                <Input
+                  type="text"
+                  value={
+                    template.original_price
+                      ? Number(template.original_price).toLocaleString("en-PH", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const rawValue = e.target.value.replace(/[₱,]/g, ""); // remove commas and peso sign
+                    const original = Number(rawValue) || 0;
+                    const discount = Number(template.discount) || 0;
+                    const calculated = original - (original * discount) / 100;
 
-                  setTemplate({
-                    ...template,
-                    discount,
-                    price: calculated,
-                  });
-                }}
-              />
-            </div>
-          </>
-        )}
+                    setTemplate({
+                      ...template,
+                      original_price: original,
+                      price: calculated,
+                    });
+                  }}
+                />
+              </div>
+
+              <div>
+                <Label>Discount (%)</Label>
+                <Input
+                  type="number"
+                  value={template.discount || ""}
+                  onChange={(e) => {
+                    const discount = Number(e.target.value) || 0;
+                    const original = Number(template.original_price) || 0;
+                    const calculated = original - (original * discount) / 100;
+
+                    setTemplate({
+                      ...template,
+                      discount,
+                      price: calculated,
+                    });
+                  }}
+                />
+              </div>
+            </>
+          )}
+
       </CardContent>
     </Card>
 

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PreviewRenderer } from "@/components/templates/PreviewRenderer";
 import type { Template, User } from "@/types/template";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface TemplateCardProps {
   template: Template;
@@ -17,6 +17,22 @@ interface TemplateCardProps {
 
 export function TemplateCard({ template, user }: TemplateCardProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const isDashboard = pathname?.startsWith("/dashboard"); // ✅ detect if in dashboard
+
+  const formatPrice = (value: number | string | undefined) => {
+  if (!value) return "₱0.00";
+  const num = Number(value);
+  return (
+    "₱" +
+    num.toLocaleString("en-PH", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
+};
+
+
   const isPremium = template.category === "premium";
   const hasDiscount = !!(template.original_price && template.discount);
   const [showRealPreview, setShowRealPreview] = useState(false);
@@ -35,20 +51,23 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
   }, []);
 
   return (
-    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden flex flex-col">
-      <div className="relative">
-        {/* Template Preview or Thumbnail */}
-        <div className="aspect-[3/4] bg-gray-100 overflow-hidden mt-0 !mt-0 pt-0 !pt-0">
-          {showRealPreview ? (
-            <PreviewRenderer template={template} user={user} slug={template.slug} />
-          ) : (
-            <img
-              src={template.thumbnail || "/placeholder.svg"}
-              alt={template.name}
-              className="w-full h-full object-cover blur-sm scale-105"
-            />
-          )}
-        </div>
+    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden flex flex-col !m-0 !p-0">
+  {/* Template Preview or Thumbnail */}
+  <div className="relative w-full h-[420px] overflow-hidden !m-0 !p-0">
+    {showRealPreview ? (
+      <PreviewRenderer
+        template={template}
+        user={user}
+        slug={template.slug}
+      />
+    ) : (
+      <img
+        src={template.thumbnail || "/placeholder.svg"}
+        alt={template.name}
+        className="w-full h-full object-cover"
+      />
+    )}
+  
 
         {/* Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-2">
@@ -122,7 +141,7 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
 
       <CardFooter className="p-4 pt-0 mt-auto">
         <div className="flex items-center justify-between w-full">
-          {/* 👤 Author Avatar (only if available) */}
+          {/* 👤 Author Avatar */}
           <div className="flex items-center gap-2">
             {template.user?.avatar_url && (
               <img
@@ -142,30 +161,38 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
             {isPremium ? (
               hasDiscount ? (
                 <>
-                  <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
+                  <span className="text-lg font-bold text-gray-900">
+                    {formatPrice(template.price)}
+                  </span>
                   <span className="text-sm text-gray-500 line-through">
-                    ₱{template.original_price}
+                    {formatPrice(template.original_price)}
                   </span>
                 </>
               ) : (
-                <span className="text-lg font-bold text-gray-900">₱{template.price}</span>
+                <span className="text-lg font-bold text-gray-900">
+                  {formatPrice(template.price)}
+                </span>
               )
             ) : (
               <span className="text-lg font-bold text-green-600">Free</span>
             )}
 
-            <Link href={`/template-by-id/${template.slug}`}>
-              <Button
-                size="sm"
-                className={`${
-                  isPremium
-                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-                    : "bg-black text-white"
-                }`}
-              >
-                {isPremium ? "Get Premium" : "Use Free"}
-              </Button>
-            </Link>
+
+            {/* ✅ Hide button in dashboard */}
+            {!isDashboard && (
+              <Link href={`/template-by-id/${template.slug}`}>
+                <Button
+                  size="sm"
+                  className={`${
+                    isPremium
+                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                      : "bg-black text-white"
+                  }`}
+                >
+                  {isPremium ? "Get Premium" : "Use Free"}
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </CardFooter>

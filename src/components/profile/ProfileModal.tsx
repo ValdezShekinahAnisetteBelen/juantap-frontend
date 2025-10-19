@@ -113,8 +113,19 @@ function ProfileModal({ open, onClose, refreshUser }: any) {
         refreshUser?.()
         onClose()
       } else {
-        toast.error("Failed to update profile")
+        // Try to extract validation messages
+        const data = await res.json().catch(() => null)
+
+        if (res.status === 422 && data?.errors) {
+          const messages = Object.values(data.errors).flat().join("\n")
+          toast.error(messages)
+        } else if (data?.message) {
+          toast.error(data.message)
+        } else {
+          toast.error("Failed to update profile. Please try again.")
+        }
       }
+
     } catch (err) {
       console.error(err)
       toast.error("Something went wrong")

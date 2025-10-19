@@ -23,6 +23,19 @@ const [isPurchasing, setIsPurchasing] = useState(false);
   const [isTogglingUsed, setIsTogglingUsed] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
 
+  const formatPrice = (value: number | string | undefined) => {
+  if (!value) return "₱0.00";
+  const num = Number(value);
+  return (
+    "₱" +
+    num.toLocaleString("en-PH", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
+};
+
+
   // Backend statuses
   const [savedStatus, setSavedStatus] = useState<"saved" | "bought" | "pending" | "free" | null>(
     template.category === "premium" ? null : "free"
@@ -195,8 +208,15 @@ const handleGetTemplate = () => {
             <div className="text-center">
               {isPremium ? (
                 <>
-                  <span className="text-3xl font-bold text-gray-900">₱{template.price}</span>
-                  {template.originalPrice && <span className="ml-2 text-xl text-gray-500 line-through">₱{template.originalPrice}</span>}
+                 <span className="text-3xl font-bold text-gray-900">
+                    {formatPrice(template.price)}
+                  </span>
+                  {template.originalPrice && (
+                    <span className="ml-2 text-xl text-gray-500 line-through">
+                      {formatPrice(template.originalPrice)}
+                    </span>
+                  )}
+
                   <p className="text-sm text-gray-600">One-time payment</p>
                 </>
               ) : (

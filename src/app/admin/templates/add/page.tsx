@@ -15,6 +15,8 @@ import { ArrowLeft } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { useRouter } from "next/navigation"
 import { MinimalClean } from "@/components/template-previews/minimal-clean-template"
+import { toast } from "sonner"
+
 
 interface TemplateData {
   id: string
@@ -91,6 +93,13 @@ export default function AddTemplatePage() {
   const [saving, setSaving] = useState(false)
   const router = useRouter()
 
+  const formatPrice = (value: number | string) => {
+  if (!value) return "₱0.00"
+  const num = Number(value)
+  return "₱" + num.toLocaleString("en-PH", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+
   const updateTemplate = <K extends keyof TemplateData>(field: K, value: TemplateData[K]) => {
     setTemplate((prev) => ({
       ...prev,
@@ -165,9 +174,9 @@ export default function AddTemplatePage() {
     }
   }
 
-  const saveTemplate = async () => {
+    const saveTemplate = async () => {
     if (!template.name || !template.description) {
-      alert("Name and description are required!")
+      toast.error("Name and description are required!")
       return
     }
 
@@ -190,12 +199,16 @@ export default function AddTemplatePage() {
 
       console.log("[v2] Sending template data to Laravel backend:", payload)
 
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/templates/store`, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      })
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/templates/store`,
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      )
 
       console.log("[v2] Backend response:", response.data)
 
@@ -205,20 +218,28 @@ export default function AddTemplatePage() {
         updated_at: now,
       })
 
-      alert("Template saved successfully!")
+      toast.success("Template saved successfully!")
       router.push("/admin/templates")
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error("[v2] Error saving template:", error.message)
-        alert(error.message)
+    } catch (error: any) {
+      console.error("[v2] Error saving template:", error.response?.data || error)
+
+      if (error.response?.status === 422) {
+        const errors = error.response.data.errors
+        if (errors) {
+          const messages = Object.values(errors).flat().join("\n")
+          toast.error(messages)
+        } else {
+          toast.error("Validation failed. Please check your inputs.")
+        }
       } else {
-        console.error("[v2] Unknown error saving template:", error)
-        alert("Failed to save template. Slug field is required/Slug has already been taken.")
+        toast.error("Failed to save template. Please try again.")
       }
     } finally {
+      // ✅ This line ensures the button resets after *any* outcome
       setSaving(false)
     }
   }
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -311,26 +332,32 @@ export default function AddTemplatePage() {
                       <Label htmlFor="price">Price (auto-calculated)</Label>
                       <Input
                         id="price"
-                        type="number"
-                        value={template.price}
+                        value={formatPrice(template.price)}
                         disabled
                         className="bg-gray-100 cursor-not-allowed"
                       />
                     </div>
+
                     <div>
                       <Label htmlFor="original_price">Original Price</Label>
                       <Input
-                        id="original_price"
-                        type="number"
-                        value={template.original_price || ""}
-                        onChange={(e) => {
-                          const original = Number(e.target.value) || 0
-                          updateTemplate("original_price", original)
-                          const calculated = original - (original * (template.discount || 0)) / 100
-                          updateTemplate("price", calculated)
-                        }}
-                        placeholder="399"
-                      />
+                          id="original_price"
+                          type="text"
+                          value={
+                            template.original_price
+                              ? formatPrice(template.original_price)
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const unformatted = e.target.value.replace(/[₱,]/g, "")
+                            const original = Number(unformatted) || 0
+                            updateTemplate("original_price", original)
+                            const calculated = original - (original * (template.discount || 0)) / 100
+                            updateTemplate("price", calculated)
+                          }}
+                          placeholder="₱399.00"
+                        />
+
                     </div>
                     <div>
                       <Label htmlFor="discount">Discount %</Label>

@@ -132,24 +132,23 @@ export default function AdminTemplatesPage() {
           <Loader2 className="h-6 w-6 animate-spin text-gray-500" />
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-stretch">
           {templates.map((template) => {
             const isPremium = template.category === "premium";
             const hasDiscount = !!(template.original_price && template.discount);
 
             return (
-              <Card
+             <Card
                 key={template.id}
-                className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden"
+                className="relative group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden flex flex-col !m-0 !p-0 h-full"
               >
-                <div className="relative">
-                  {/* Live Preview / Thumbnail */}
-                  <div className="aspect-[3/4] bg-gray-100 overflow-hidden">
+                  {/* Template Preview / Thumbnail */}
+                  <div className="relative w-full h-[420px] overflow-hidden !m-0 !p-0">
                     <PreviewRenderer template={template} slug={template.slug} />
                   </div>
 
                   {/* Badges */}
-                  <div className="absolute top-3 left-3 flex flex-col gap-2">
+                  <div className="absolute top-3 left-3 flex flex-col gap-2 z-10">
                     {isPremium && (
                       <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0">
                         Premium
@@ -174,7 +173,7 @@ export default function AdminTemplatesPage() {
                   </div>
 
                   {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center z-20">
                     <Button
                       size="sm"
                       variant="secondary"
@@ -184,51 +183,70 @@ export default function AdminTemplatesPage() {
                       Edit Template
                     </Button>
                   </div>
-                </div>
 
-                <CardContent className="p-4">
-                  <h3 className="font-semibold text-lg text-gray-900 group-hover:text-purple-600 transition-colors">
-                    {template.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                    {template.description}
-                  </p>
+                  <CardContent className="p-4 flex-grow">
+                    <h3 className="font-semibold text-lg text-gray-900 group-hover:text-purple-600 transition-colors">
+                      {template.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                      {template.description}
+                    </p>
 
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {template.tags?.slice(0, 3).map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {template.tags?.slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
 
-                <CardFooter className="p-4 pt-0 flex justify-between items-center">
-                  <span className="text-sm text-gray-500">
-                    {template.created_at || template.createdAt}
-                  </span>
-                  {isPremium ? (
-                    hasDiscount ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-gray-900">
-                          ₱{template.price}
-                        </span>
-                        <span className="text-sm text-gray-500 line-through">
-                          ₱{template.original_price}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-lg font-bold text-gray-900">
-                        ₱{template.price}
-                      </span>
-                    )
-                  ) : (
-                    <span className="text-lg font-bold text-green-600">
-                      Free
+                  <CardFooter className="p-4 pt-0 flex justify-between items-center">
+                    <span className="text-sm text-gray-500">
+                      {(() => {
+                        const dateValue = template.created_at || template.createdAt;
+                        if (!dateValue) return "—";
+                        const date = new Date(dateValue);
+                        return new Intl.DateTimeFormat("en-GB", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })
+                          .format(date)
+                          .replace(/ /g, "-");
+                      })()}
                     </span>
-                  )}
-                </CardFooter>
-              </Card>
+
+                    {isPremium ? (
+                      hasDiscount ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-bold text-gray-900">
+                            ₱{Number(template.price).toLocaleString("en-PH", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </span>
+                          <span className="text-sm text-gray-500 line-through">
+                            ₱{Number(template.original_price).toLocaleString("en-PH", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-lg font-bold text-gray-900">
+                          ₱{Number(template.price).toLocaleString("en-PH", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </span>
+                      )
+                    ) : (
+                      <span className="text-lg font-bold text-green-600">Free</span>
+                    )}
+                  </CardFooter>
+                </Card>
+
             );
           })}
 

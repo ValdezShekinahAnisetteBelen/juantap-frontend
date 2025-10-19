@@ -54,21 +54,19 @@ export function LoginForm() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  e.preventDefault()
 
-    if (!validateForm()) return
+  if (!validateForm()) return
 
-    setIsLoading(true)
-    setErrors({})
+  setIsLoading(true)
+  setErrors({})
 
-   try {
+  try {
     const response = await login(formData)
 
     if (response.data.access_token) {
       // Store token
       localStorage.setItem("token", response.data.access_token)
-
-      // Store user info for later use (admin check)
       localStorage.setItem("user", JSON.stringify(response.data.user))
 
       toast.success("Login successful!")
@@ -81,21 +79,22 @@ export function LoginForm() {
       }
     }
   } catch (error: any) {
-      console.log("Login error response:", error.response)
+    console.log("Login error response:", error.response)
 
-      const message = error.response?.data?.message || error.response?.data?.error || ""
+    const message = error.response?.data?.message || error.response?.data?.error || ""
 
-      if (message.toLowerCase().includes("account not verified")) {
-        setErrors({ general: "Your account is not verified. Please verify your email before logging in." })
-      } else if (error.response?.status === 422) {
-        setErrors({ general: message || "Invalid credentials." })
-      } else {
-        setErrors({ general: "Something went wrong. Please try again." })
-      }
-    } finally {
-      setIsLoading(false)
+    if (message.toLowerCase().includes("account not verified")) {
+      setErrors({ general: "Your account is not verified. Please verify your email before logging in." })
+    } else if (error.response?.status === 422 || error.response?.status === 401) {
+      setErrors({ general: message || "Invalid credentials. Please try again." })
+    } else {
+      setErrors({ general: "Something went wrong. Please try again." })
     }
+  } finally {
+    // ✅ Always stop loading here
+    setIsLoading(false)
   }
+}
 
   const handleInputChange = (field: keyof LoginFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }))
