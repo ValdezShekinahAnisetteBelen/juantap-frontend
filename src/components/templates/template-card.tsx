@@ -1,25 +1,24 @@
-"use client"; 
+"use client";
 
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Crown, Download, Eye, Star, User as UserIcon, Sparkles, UserStarIcon } from "lucide-react"
-import Link from "next/link"
-import { useEffect, useState } from "react"
-import { PreviewRenderer } from "@/components/templates/PreviewRenderer"
-import type { Template, User } from "@/types/template"
-import { Loader2 } from "lucide-react"; 
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Crown, Eye, Star, Sparkles, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { PreviewRenderer } from "@/components/templates/PreviewRenderer";
+import type { Template, User } from "@/types/template";
 import { useRouter } from "next/navigation";
 
 interface TemplateCardProps {
-  template: Template
-  user?: User
+  template: Template;
+  user?: User;
 }
 
 export function TemplateCard({ template, user }: TemplateCardProps) {
   const router = useRouter();
-  const isPremium = template.category === "premium"
-  const hasDiscount = !!(template.original_price && template.discount)
+  const isPremium = template.category === "premium";
+  const hasDiscount = !!(template.original_price && template.discount);
   const [showRealPreview, setShowRealPreview] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
 
@@ -30,16 +29,16 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setShowRealPreview(true)
-    }, 800)
-    return () => clearTimeout(timeout)
-  }, [])
+      setShowRealPreview(true);
+    }, 800);
+    return () => clearTimeout(timeout);
+  }, []);
 
   return (
     <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-lg overflow-hidden flex flex-col">
       <div className="relative">
         {/* Template Preview or Thumbnail */}
-        <div className="aspect-[3/4] bg-gray-100 overflow-hidden">
+        <div className="aspect-[3/4] bg-gray-100 overflow-hidden mt-0 !mt-0 pt-0 !pt-0">
           {showRealPreview ? (
             <PreviewRenderer template={template} user={user} slug={template.slug} />
           ) : (
@@ -103,7 +102,6 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
         </div>
       </div>
 
-      {/* Make content stretch and push footer down */}
       <CardContent className="p-4 flex-grow">
         <div className="flex items-start justify-between mb-2">
           <h3 className="font-semibold text-lg text-gray-900 group-hover:text-purple-600 transition-colors">
@@ -122,23 +120,20 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
         </div>
       </CardContent>
 
-      {/* Footer aligned to bottom */}
       <CardFooter className="p-4 pt-0 mt-auto">
         <div className="flex items-center justify-between w-full">
-          {/* 👤 Author Info */}
+          {/* 👤 Author Avatar (only if available) */}
           <div className="flex items-center gap-2">
-            {template.user?.avatar_url ? (
+            {template.user?.avatar_url && (
               <img
                 src={template.user.avatar_url}
                 alt={template.user.name || "Author"}
                 className="w-6 h-6 rounded-full object-cover"
                 onError={(e) => {
-                  e.currentTarget.onerror = null
-                  e.currentTarget.style.display = "none" // hide broken image
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.style.display = "none";
                 }}
               />
-            ) : (
-              <UserIcon size={24} className="text-gray-400" />
             )}
           </div>
 
@@ -175,5 +170,5 @@ export function TemplateCard({ template, user }: TemplateCardProps) {
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }

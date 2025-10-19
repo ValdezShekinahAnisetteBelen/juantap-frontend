@@ -152,7 +152,7 @@ export const columns: ColumnDef<Payment>[] = [
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => window.open(`${IMAGE_URL}/storage/${row.original.receipt_img}`, "_blank")}
+          onClick={() => window.open(`${IMAGE_URL}/${row.original.receipt_img}`, "_blank")}
         >
           <Eye className="w-4 h-4" />
         </Button>

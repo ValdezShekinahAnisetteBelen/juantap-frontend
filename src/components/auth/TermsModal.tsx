@@ -13,47 +13,53 @@ export function TermsModal() {
       <DialogTrigger asChild>
         <button
           type="button"
-          className="text-purple-400 hover:text-pink-300 font-medium cursor-pointer no-underline transition-colors"
+          className="text-purple-600 hover:text-purple-700 font-semibold cursor-pointer transition-colors duration-200"
         >
           Terms of Service
         </button>
       </DialogTrigger>
 
-      <DialogContent className="max-w-lg max-h-[90vh] rounded-2xl border-0 shadow-2xl overflow-hidden">
-        {/* Header with Gradient */}
-        <DialogHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 rounded-t-3xl">
-          <DialogTitle className="text-lg font-bold">Terms of Service</DialogTitle>
+      <DialogContent className="max-w-2xl max-h-[85vh] rounded-xl border border-slate-200 shadow-xl overflow-hidden p-0">
+        <DialogHeader className="bg-gradient-to-r from-purple-600 to-red-500 border-b-2 border-red-600 px-6 py-6">
+          <div>
+            <DialogTitle className="text-2xl font-bold text-white">Terms of Service</DialogTitle>
+            <p className="text-sm text-purple-100 mt-1">Please read carefully before using JuanTap</p>
+          </div>
         </DialogHeader>
 
-        {/* Scrollable Content */}
-        <ScrollArea className="h-[60vh] px-6 py-4 pr-4">
-          <div className="space-y-4 text-sm text-gray-700">
-            <p>Welcome to JuanTap! By using our services, you agree to the following terms:</p>
+        <ScrollArea className="h-[calc(85vh-180px)]">
+          <div className="px-8 py-8 space-y-6 text-sm text-slate-700">
+            <p className="leading-relaxed text-base text-slate-800">
+              Welcome to <span className="font-semibold text-purple-700">JuanTap</span>! By using our services, you
+              agree to the following terms:
+            </p>
 
-            <ul className="list-disc list-inside space-y-2">
-              <li>You must be at least 13 years old to use our platform.</li>
-              <li>All information provided must be accurate and up-to-date.</li>
-              <li>You are responsible for keeping your account secure.</li>
-              <li>Do not use our platform for illegal or harmful activities.</li>
-              <li>We reserve the right to suspend or terminate accounts that violate these terms.</li>
-              <li>Your data is protected and used in accordance with our privacy policy.</li>
+            <ul className="space-y-4">
+              {[
+                "You must be at least 13 years old to use our platform.",
+                "All information provided must be accurate and up-to-date.",
+                "You are responsible for keeping your account secure.",
+                "Do not use our platform for illegal or harmful activities.",
+                "We reserve the right to suspend or terminate accounts that violate these terms.",
+                "Your data is protected and used in accordance with our privacy policy.",
+              ].map((item, index) => (
+                <li key={index} className="flex gap-4 items-start">
+                  <span className="text-red-500 font-bold flex-shrink-0 text-lg">✓</span>
+                  <span className="leading-relaxed pt-0.5">{item}</span>
+                </li>
+              ))}
             </ul>
 
-            <p>
-              These terms may be updated at any time. Continued use of the platform constitutes your acceptance of the updated terms.
-            </p>
+            <div className="bg-purple-50 border-l-4 border-red-500 p-4 rounded-r-lg mt-6">
+              <p className="text-sm text-slate-700 leading-relaxed">
+                <span className="font-semibold text-slate-900">Important:</span> These terms may be updated at any time.
+                Continued use of the platform constitutes your acceptance of the updated terms.
+              </p>
+            </div>
           </div>
         </ScrollArea>
 
-        {/* Footer Button */}
-        <div className="text-right px-6 py-4 border-t border-gray-200">
-          <Button
-            onClick={() => setOpen(false)}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-          >
-            Close
-          </Button>
-        </div>
+      
       </DialogContent>
     </Dialog>
   )

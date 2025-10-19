@@ -5,7 +5,15 @@ import api from "@/lib/axios"
 import { Button } from "@/components/ui/button"
 import { QRCodeCanvas } from "qrcode.react"
 import {
-  Facebook, Instagram, Twitter, Linkedin, Github, Youtube, Music, Globe, User
+  Facebook,
+  Instagram,
+  Twitter,
+  Linkedin,
+  Github,
+  Youtube,
+  Music,
+  Globe,
+  User,
 } from "lucide-react"
 
 interface SocialLink {
@@ -27,8 +35,14 @@ interface UserData {
   }
 }
 
-export function ProfilePreview() {
-  const [user, setUser] = useState<UserData | null>(null)
+interface ProfilePreviewProps {
+  user?: UserData
+  imageUrl?: string
+}
+
+export function ProfilePreview({ user: propUser, imageUrl }: ProfilePreviewProps) {
+  const [user, setUser] = useState<UserData | null>(propUser || null)
+  const [hasUsedTemplate, setHasUsedTemplate] = useState(false)
 
   const socialIconMap: Record<string, JSX.Element> = {
     facebook: <Facebook size={14} />,
@@ -40,17 +54,35 @@ export function ProfilePreview() {
     tiktok: <Music size={14} />,
   }
 
+  // ✅ Fetch user if not passed as prop
   useEffect(() => {
-    const fetchUser = async () => {
+    if (!propUser) {
+      const fetchUser = async () => {
+        try {
+          const res = await api.get("/user")
+          setUser(res.data)
+        } catch (error) {
+          console.error("Failed to fetch user", error)
+        }
+      }
+      fetchUser()
+    }
+  }, [propUser])
+
+  // ✅ Check if user has used a template
+  useEffect(() => {
+    const checkUsedTemplate = async () => {
+      if (!user?.username) return
       try {
-        const res = await api.get("/user")
-        setUser(res.data)
+        const res = await api.get(`/profile/${user.username}/used-templates`)
+        setHasUsedTemplate(res.data && res.data.length > 0)
       } catch (error) {
-        console.error("Failed to fetch user", error)
+        console.error("Failed to check used templates", error)
       }
     }
-    fetchUser()
-  }, [])
+
+    checkUsedTemplate()
+  }, [user])
 
   if (!user) {
     return <div className="text-center text-sm text-gray-500">Loading user data...</div>
@@ -58,15 +90,28 @@ export function ProfilePreview() {
 
   const visibleLinks = user.profile?.socialLinks?.filter(link => link.isVisible) || []
 
+  const profileImg =
+    imageUrl ||
+    (user.profile_image ? `${process.env.NEXT_PUBLIC_IMAGE_URL}/${user.profile_image}` : null)
+
+  const canShowQR = !!user.username && hasUsedTemplate
+
   return (
     <div className="relative">
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-auto border">
-        
-        {/* Profile Icon (Default User Icon) */}
+        {/* Profile Image */}
         <div className="flex items-center space-x-3 mb-6">
-          <div className="w-16 h-16 rounded-full border flex items-center justify-center bg-gray-100">
-            <User size={32} className="text-gray-500" />
-          </div>
+          {profileImg ? (
+            <img
+              src={profileImg}
+              alt={user.name}
+              className="w-16 h-16 rounded-full border object-cover"
+            />
+          ) : (
+            <div className="w-16 h-16 rounded-full border flex items-center justify-center bg-gray-100">
+              <User size={32} className="text-gray-500" />
+            </div>
+          )}
           <div>
             <h3 className="font-semibold text-lg">{user.name}</h3>
             <p className="text-gray-500">{user.email}</p>
@@ -95,14 +140,25 @@ export function ProfilePreview() {
           </div>
         )}
 
-        {/* QR Code */}
-        <div className="flex justify-center">
-         <QRCodeCanvas
+        {/* ✅ QR Code Section */}
+        {canShowQR ? (
+          <div className="flex flex-col items-center mt-6">
+            <QRCodeCanvas
               value={`${process.env.NEXT_PUBLIC_FRONTEND_URL}/${user.username}`}
               size={128}
             />
+            <p className="text-xs text-gray-500 mt-2">
+              Scan to view your digital profile
+            </p>
+          </div>
+        ) : (
+          <div className="text-center text-sm text-gray-500 mt-6 italic">
+            QR code will appear once you’ve set a{" "}
+            <span className="font-semibold">username</span> and used a{" "}
+            <span className="font-semibold">template</span>.
+          </div>
+        )}
 
-        </div>
       </div>
     </div>
   )

@@ -41,40 +41,39 @@ export function PricingCard({
   
 }: PricingCardProps) {
   return (
-    <Card className={cn("transition-colors relative", borderClass)}>
-      {badge && (
-        <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600">
-          {badge}
-        </Badge>
-      )}
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">{name}</CardTitle>
-        <CardDescription className="text-lg">{description}</CardDescription>
-        <div className={cn("text-3xl font-bold mt-4", priceColor)}>{price}</div>
-        {priceSubtext && <p className="text-sm text-gray-500">{priceSubtext}</p>}
-      </CardHeader>
-      <CardContent>
-        <ul className="space-y-3">
-          {features.map((feature) => (
-            <li key={feature} className="flex items-center">
-              <CheckCircle className={cn("w-5 h-5 mr-3", iconColor)} />
-              {feature}
-            </li>
-          ))}
-        </ul>
-        
-     <Button
-      className={cn("w-full mt-6 flex items-center justify-center gap-2", buttonClass)}
-      variant={buttonVariant}
-      onClick={onClick}
-      disabled={loadingBtn === name}
-    >
-      {loadingBtn === name ? "Loading..." : buttonText}
-    </Button>
+    <Card className={cn("transition-colors relative flex flex-col h-full", borderClass)}>
+        {badge && (
+          <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600">
+            {badge}
+          </Badge>
+        )}
+        <CardHeader className="text-center flex-grow-0">
+          <CardTitle className="text-2xl">{name}</CardTitle>
+          <CardDescription className="text-lg">{description}</CardDescription>
+          <div className={cn("text-3xl font-bold mt-4", priceColor)}>{price}</div>
+          {priceSubtext && <p className="text-sm text-gray-500">{priceSubtext}</p>}
+        </CardHeader>
 
+        <CardContent className="flex flex-col flex-grow justify-between">
+          <ul className="space-y-3 mb-6">
+            {features.map((feature) => (
+              <li key={feature} className="flex items-center">
+                <CheckCircle className={cn("w-5 h-5 mr-3", iconColor)} />
+                {feature}
+              </li>
+            ))}
+          </ul>
 
+          <Button
+            className={cn("w-full mt-auto flex items-center justify-center gap-2", buttonClass)}
+            variant={buttonVariant}
+            onClick={onClick}
+            disabled={loadingBtn === name}
+          >
+            {loadingBtn === name ? "Loading..." : buttonText}
+          </Button>
+        </CardContent>
+      </Card>
 
-      </CardContent>
-    </Card>
   )
 }

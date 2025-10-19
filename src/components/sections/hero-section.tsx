@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Zap, Sparkles } from "lucide-react";
 import { ProfilePreview } from "@/components/blocks/profile-preview";
 
+
 export function HeroSection() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true); // track if we are still checking
@@ -84,14 +85,23 @@ export function HeroSection() {
 
         </div>
 
-        {user && (
-          <div className="mt-20 relative">
-            <div className="absolute inset-0 bg-gradient-to-t from-white/5 to-transparent rounded-3xl blur-xl"></div>
-            <div className="relative">
-              <ProfilePreview user={user} />
-            </div>
+       {user && (
+        <div className="mt-20 relative">
+          <div className="absolute inset-0 bg-gradient-to-t from-white/5 to-transparent rounded-3xl blur-xl"></div>
+          <div className="relative">
+           <ProfilePreview
+              user={user}
+              imageUrl={
+                user.profile_image
+                  ? `${process.env.NEXT_PUBLIC_IMAGE_URL}/${user.profile_image}`
+                  : undefined
+              }
+            />
+
           </div>
-        )}
+        </div>
+      )}
+
       </div>
     </section>
   );

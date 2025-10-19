@@ -315,28 +315,35 @@ const [avatarError, setAvatarError] = useState(false)
               QR Code for {author.displayName}
             </DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col items-center space-y-4">
-            <QRCodeSVG value={profileUrl} size={256} />
-            <a href={profileUrl} target="_blank" rel="noopener noreferrer">
-              {profileUrl}
-            </a>
-            <div className="w-full p-3 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600 mb-2">Profile URL:</p>
-              <div className="flex items-center justify-between">
-                <code className="text-sm text-gray-800 truncate flex-1 mr-2">{profileUrl}</code>
-                <Button variant="ghost" size="sm" onClick={copyUrl}>
+          <div className="flex flex-col items-center space-y-4 w-full">
+            <div className="w-full flex justify-center">
+              <QRCodeSVG
+                value={profileUrl}
+                size={200}
+                className="w-full max-w-[220px] h-auto"
+              />
+            </div>
+            <div className="w-full p-3 bg-gray-50 rounded-lg text-xs sm:text-sm">
+              <p className="text-gray-600 mb-2">Profile URL:</p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <code className="text-gray-800 truncate flex-1">{profileUrl}</code>
+                <Button variant="ghost" size="sm" onClick={copyUrl} className="self-end sm:self-auto">
                   {copied ? "Copied!" : "Copy"}
                 </Button>
               </div>
             </div>
-            <div className="flex gap-2 w-full">
-              <Button variant="outline">
+
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <Button variant="outline" className="flex-1">
                 <Download className="w-4 h-4 mr-2" />
                 Download
               </Button>
-              <Button onClick={() => setIsQRModalOpen(false)}>Close</Button>
+              <Button onClick={() => setIsQRModalOpen(false)} className="flex-1">
+                Close
+              </Button>
             </div>
           </div>
+
         </DialogContent>
       </Dialog>
     </div>
