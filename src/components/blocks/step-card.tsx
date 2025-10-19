@@ -8,7 +8,7 @@ interface StepCardProps {
 export function StepCard({ step, title, description, gradient }: StepCardProps) {
   return (
     <div className="relative group">
-      <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 text-center hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25">
+      <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 text-center min-h-90 max-h-120 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/25">
         {/* Step number with gradient background */}
         <div
           className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r ${gradient} text-white font-bold text-xl mb-6 shadow-lg`}

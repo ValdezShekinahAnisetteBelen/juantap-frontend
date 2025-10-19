@@ -77,29 +77,10 @@ export function HeroSection() {
               className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 hover:from-purple-700 hover:via-pink-700 hover:to-purple-700 text-white text-lg px-10 py-4 rounded-full shadow-2xl hover:shadow-purple-500/25 transition-all duration-300 transform hover:scale-105 border border-white/20 flex items-center justify-center gap-2"
             >
               {loadingBtn === "create" ? "Loading..." : "Create Your Profile"}
-              <ArrowRight className="w-5 h-5 ml-2 animate-bounce" />
             </Button>
           </Link>
 
-             <Button
-            variant="outline"
-            size="lg"
-            disabled={!user?.username || loading || loadingBtn === "view"}
-            onClick={(e) => {
-              if (!user?.username) {
-                e.preventDefault();
-                alert("Set a username first in Edit Profile.");
-                return;
-              }
-              setLoadingBtn("view");
-              window.location.href = `/${user.username}`;
-            }}
-            className={`text-lg px-10 py-4 rounded-full border-2 border-white/30 text-white bg-white/10 backdrop-blur-sm 
-              ${!user?.username || loading ? "opacity-50 cursor-not-allowed" : "hover:bg-white/20 hover:scale-105 transition-all duration-300"} flex items-center justify-center gap-2`}
-          >
-            {loadingBtn === "view" ? "Loading..." : "View Public Profile"}
-          </Button>
-
+           
 
         </div>
 

@@ -46,7 +46,7 @@ export function CTASection() {
             onClick={() => handleClick("getStarted", getLink())}
             disabled={loadingBtn === "getStarted"}
           >
-            {loadingBtn === "getStarted" ? "Loading..." : <>Get Started Free <ArrowRight className="w-5 h-5 ml-2" /></>}
+            {loadingBtn === "getStarted" ? "Loading..." : <>Get Started Free </>}
           </Button>
 
           <Button
