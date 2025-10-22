@@ -171,16 +171,7 @@ function ProfileModal({ open, onClose, refreshUser }: any) {
 
         {/* Form Fields */}
         <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label>First Name</Label>
-              <Input name="firstname" value={form.firstname} onChange={handleChange} />
-            </div>
-            <div>
-              <Label>Last Name</Label>
-              <Input name="lastname" value={form.lastname} onChange={handleChange} />
-            </div>
-          </div>
+        
           <div>
             <Label>Display Name</Label>
             <Input name="display_name" value={form.display_name} onChange={handleChange} />

@@ -234,7 +234,7 @@ export function AdminSidebar({ isOpen, setIsOpen }: AdminSidebarProps) {
             {!collapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  {user?.name || ""}
+                  {user?.display_name || ""}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
                   {user?.email || ""}

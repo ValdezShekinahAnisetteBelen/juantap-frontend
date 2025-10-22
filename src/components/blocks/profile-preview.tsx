@@ -43,6 +43,7 @@ interface ProfilePreviewProps {
 export function ProfilePreview({ user: propUser, imageUrl }: ProfilePreviewProps) {
   const [user, setUser] = useState<UserData | null>(propUser || null)
   const [hasUsedTemplate, setHasUsedTemplate] = useState(false)
+  const [imgError, setImgError] = useState(false)
 
   const socialIconMap: Record<string, JSX.Element> = {
     facebook: <Facebook size={14} />,
@@ -101,17 +102,18 @@ export function ProfilePreview({ user: propUser, imageUrl }: ProfilePreviewProps
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md mx-auto border">
         {/* Profile Image */}
         <div className="flex items-center space-x-3 mb-6">
-          {profileImg ? (
-            <img
-              src={profileImg}
-              alt={user.name}
-              className="w-16 h-16 rounded-full border object-cover"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full border flex items-center justify-center bg-gray-100">
-              <User size={32} className="text-gray-500" />
-            </div>
-          )}
+          {profileImg && !imgError ? (
+              <img
+                src={profileImg}
+                alt={user.name}
+                onError={() => setImgError(true)}
+                className="w-16 h-16 rounded-full border object-cover"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full border flex items-center justify-center bg-gray-100">
+                <User size={32} className="text-gray-500" />
+              </div>
+            )}
           <div>
             <h3 className="font-semibold text-lg">{user.name}</h3>
             <p className="text-gray-500">{user.email}</p>

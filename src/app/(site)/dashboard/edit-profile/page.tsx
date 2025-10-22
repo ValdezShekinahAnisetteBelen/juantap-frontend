@@ -111,6 +111,12 @@ const handleSave = async () => {
       const data = await res.json();
       setProfile((prev: Profile) => ({ ...prev, ...data }));
       toast.success("Profile saved!");
+      
+  // ✅ Update cached user in localStorage so Header can read the latest info
+  localStorage.setItem("user", JSON.stringify(data))
+
+  // ✅ Option 1: Soft reload everything (including Header)
+  window.location.reload()
     } else if (res.status === 422) {
       const err = await res.json();
       if (err.errors?.username) {
@@ -264,16 +270,16 @@ if (!profile) return <div className="p-8 text-white">Loading profile...</div>;
                   Profile Picture
                 </CardTitle>
               </CardHeader>
-       <CardContent>
-          <div className="flex items-center gap-4">
-            <Avatar className="w-20 h-20">
-             
-          <AvatarImage
-          src={
-            previewURL ||
-            (profile.profile_image ? `${process.env.NEXT_PUBLIC_IMAGE_URL}/${profile.profile_image}` : "/avatar.png")
-          }
-        />
+            <CardContent>
+                <div className="flex items-center gap-4">
+                  <Avatar className="w-20 h-20">
+                  
+                <AvatarImage
+                src={
+                  previewURL ||
+                  (profile.profile_image ? `${process.env.NEXT_PUBLIC_IMAGE_URL}/${profile.profile_image}` : "/avatar.png")
+                }
+              />
 
               <AvatarFallback className="text-lg">
                 {profile?.name?.[0] ?? ''}

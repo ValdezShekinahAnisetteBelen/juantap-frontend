@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Eye, X } from "lucide-react"
+import { Loader2, Eye, X, User } from "lucide-react"
 import { toast } from "sonner"
 import Image from "next/image"
 
@@ -137,15 +137,32 @@ export default function AdminUsersPage() {
                           <td className="py-3 px-4 text-sm">{idx + 1}</td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-3">
-                              <Image
-                                src={getImageUrl(user.avatar_url) || "/placeholder.svg"}
-                                alt={user.name}
-                                width={40}
-                                height={40}
-                                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                              />
-                              <span className="text-sm font-medium truncate">{user.name}</span>
-                            </div>
+                                {user.avatar_url ? (
+                                  <Image
+                                    src={getImageUrl(user.avatar_url)}
+                                    alt={user.name}
+                                    width={40}
+                                    height={40}
+                                    className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement
+                                      target.style.display = "none"
+                                      const fallback = target.nextElementSibling as HTMLElement
+                                      if (fallback) fallback.style.display = "flex"
+                                    }}
+                                  />
+                                ) : null}
+
+                                {/* Fallback icon */}
+                                <div
+                                  className="hidden w-10 h-10 rounded-full bg-gray-100 text-gray-500 items-center justify-center"
+                                >
+                                  <User size={20} />
+                                </div>
+
+                                <span className="text-sm font-medium truncate">{user.name}</span>
+                              </div>
+
                           </td>
                           <td className="py-3 px-4 text-sm text-gray-600 max-w-[200px] truncate">{user.email}</td>
                           <td className="py-3 px-4">
@@ -175,13 +192,27 @@ export default function AdminUsersPage() {
                     <Card key={user.id} className="overflow-hidden">
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
-                          <Image
-                            src={getImageUrl(user.avatar_url) || "/placeholder.svg"}
-                            alt={user.name}
-                            width={48}
-                            height={48}
-                            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
-                          />
+                           {user.avatar_url ? (
+                            <Image
+                              src={getImageUrl(user.avatar_url)}
+                              alt={user.name}
+                              width={48}
+                              height={48}
+                              className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                target.style.display = "none"
+                                const fallback = target.nextElementSibling as HTMLElement
+                                if (fallback) fallback.style.display = "flex"
+                              }}
+                            />
+                          ) : null}
+
+                          
+                          <div className="hidden w-12 h-12 rounded-full bg-gray-100 text-gray-500 items-center justify-center">
+                            <User size={22} />
+                          </div>
+
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-2 mb-1">
                               <h3 className="font-semibold text-sm truncate">{user.name}</h3>
@@ -234,13 +265,26 @@ export default function AdminUsersPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3 sm:gap-4 mt-2">
-                <Image
-                  src={getImageUrl(selectedUser.avatar_url) || "/placeholder.svg"}
-                  alt={selectedUser.name}
-                  width={96}
-                  height={96}
-                  className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover"
-                />
+                {selectedUser.avatar_url ? (
+                  <Image
+                    src={getImageUrl(selectedUser.avatar_url)}
+                    alt={selectedUser.name}
+                    width={96}
+                    height={96}
+                    className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = "none"
+                      const fallback = target.nextElementSibling as HTMLElement
+                      if (fallback) fallback.style.display = "flex"
+                    }}
+                  />
+                ) : null}
+
+                {/* Fallback user icon */}
+                <div className="hidden w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gray-100 text-gray-500 items-center justify-center">
+                  <User size={32} />
+                </div>
 
                 <h2 className="text-lg sm:text-xl font-bold text-center">{selectedUser.name}</h2>
                 <p className="text-sm sm:text-base text-gray-600 text-center break-all">{selectedUser.email}</p>
@@ -262,6 +306,7 @@ export default function AdminUsersPage() {
                   </p>
                 )}
               </div>
+
             )}
           </div>
         </div>
